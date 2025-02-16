@@ -1,5 +1,5 @@
 {
-  "name": "cm22010_cw2",
+  "name": "frontend",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -10,6 +10,11 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@fullcalendar/daygrid": "^6.1.15",
+    "@fullcalendar/interaction": "^6.1.15",
+    "@fullcalendar/react": "^6.1.15",
+    "@fullcalendar/timegrid": "^6.1.15",
+    "fullcalendar": "^6.1.15",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
