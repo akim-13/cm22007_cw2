@@ -1,5 +1,12 @@
 # React + TypeScript + Vite
 
+# Setup guide
+
+1) Clone the project into your IDE
+2) 'cd /frontend' into terminal
+3) 'npm install' into terminal
+4) 'npm run dev' into terminal
+
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
 Currently, two official plugins are available:
