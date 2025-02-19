@@ -14,22 +14,23 @@ const App: React.FC = () => {
         editable={true}
         selectable={true}
         height="95%"
-        timeZone="GMT"
+        timeZone="local"
         headerToolbar={{
           left: 'prev,next,today',
           center: 'title',
           right: ''
         }}
-        events={[
-          { title: "Event 1", date: "2025-02-20" },
-          { title: "Event 2", date: "2025-02-22" },
-        ]}
+        events={'https://fullcalendar.io/api/demo-feeds/events.json'}
         views={{
           timeGridWeek: {
             type: 'timeGrid',
             slotDuration: '01:00:00',
+            slotLabelInterval: '01:00:00',
           }
         }}
+        scrollTime={'09:00:00'}
+        eventBorderColor="white"
+        eventColor="rgb(59,130,246)"
       />
     </div>
   );
