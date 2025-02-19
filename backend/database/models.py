@@ -18,7 +18,7 @@ class User(ORM_Base):
     # user = db.query(User).first()
     # print(user.tasks)
     tasks = relationship("Task", back_populates="user")  # python-side ORM Relationship
-    standalone_events = relationship("Standalone_event", back_populates="user")
+    standalone_events = relationship("Standalone_Event", back_populates="user")
     achievements = relationship("Achievements_to_User", back_populates="user")
     
     @property
@@ -42,7 +42,7 @@ class Task(ORM_Base):
     username = Column(String, ForeignKey("User.username"), nullable=False)
     
     user = relationship("User", back_populates="tasks")
-    events = relationship("Task", back_populates="task")
+    events = relationship("Event", back_populates="task")
     
 
 

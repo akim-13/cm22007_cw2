@@ -27,10 +27,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
-templates = Jinja2Templates(directory="templates")
+app.mount("/static", StaticFiles(directory="backend/static"), name="static")
+templates = Jinja2Templates(directory="backend/templates")
 
 ORM_Base.metadata.create_all(bind=engine)  # Create tables
+SessionLocal().add(models.User(username="joe", hashedPassword="x", streakDays=0, currentPoints=0, stressLevel=0))
 
 # This creates new user db session each request
 # A global db var introduces issues with multiple users accessing same db session
@@ -52,8 +53,22 @@ def home_page(request: Request, db: Session = Depends(yield_db)):
 
 # title is expected as a form parameter (purpose of ellipses ...)
 @app.post("/add", response_class=HTMLResponse)
-def add(request: Request, title: str = Form(...), priority: int = Form(...), deadline: datetime = Form(...), db: Session = Depends(yield_db)):
-    new_task = models.Task(title=title, priority=priority, start=datetime.now(), end=deadline)
+def add(request: Request, 
+        title: str = Form(...), 
+        description: str = Form(...),
+        duration: int = Form(...),
+        priority: int = Form(...), 
+        deadline: datetime = Form(...), 
+        db: Session = Depends(yield_db)):
+    
+    new_task = models.Task(
+        title=title, 
+        description=description, 
+        duration=duration, 
+        priority=priority, 
+        deadline=deadline, 
+        username="joe")
+    
     db.add(new_task)
     db.commit()
     
@@ -61,9 +76,9 @@ def add(request: Request, title: str = Form(...), priority: int = Form(...), dea
     return RedirectResponse(url=url, status_code=status.HTTP_303_SEE_OTHER)
 
 
-@app.get("/delete/{task_id}")
+@app.delete("/delete/{task_id}", response_class=HTMLResponse)
 def delete(request: Request, task_id: int, db: Session = Depends(yield_db)):
-    task = db.query(models.Task).filter(models.Task.id == task_id).first()
+    task = db.query(models.Task).filter(models.Task.taskID == task_id).first()
     db.delete(task)
     db.commit()
 
@@ -71,10 +86,10 @@ def delete(request: Request, task_id: int, db: Session = Depends(yield_db)):
     return RedirectResponse(url=url, status_code=status.HTTP_302_FOUND)
 
 
-@app.get("/update/{task_id}")
+@app.put("/update/{task_id}", response_class=HTMLResponse)
 def update(request: Request, task_id: int, db: Session = Depends(yield_db)):
-    task = db.query(models.Task).filter(models.Task.id == task_id).first()
-    task.completed = not task.completed
+    task = db.query(models.Task).filter(models.Task.taskID == task_id).first()
+    task.isCompleted = not task.isCompleted
     db.commit()
 
     url = app.url_path_for("home")
@@ -83,4 +98,4 @@ def update(request: Request, task_id: int, db: Session = Depends(yield_db)):
     
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=5173)
+    uvicorn.run(app)
