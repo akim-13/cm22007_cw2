@@ -1,0 +1,11 @@
+<form class="ui form" action="/add" method="post">
+    <div class="field">
+        <label>Enter title</label>
+        <input type="text" name="title" placeholder="Task title here"><br><br>
+        <label>Enter priority, 1 being the highest and ascending numbers being lower priority</label>
+        <input type="number" min="1" max="20" name="priority" placeholder="Priority as a number"><br><br>
+        <label>Enter deadline</label>
+        <input type="datetime-local" name="deadline" placeholder="YYYY-MM-DD HH:MM"><br><br>
+    </div>
+    <button class="ui blue button" type="submit">Create new task</button>
+</form>
