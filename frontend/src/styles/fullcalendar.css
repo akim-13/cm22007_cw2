@@ -1,0 +1,37 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom Time Grid Slot Styling */
+.fc-timegrid-slot {
+  @apply h-[60px] !important;
+}
+
+/* Optional: Style Event Blocks */
+.fc-event {
+  @apply text-white rounded-md shadow-md p-2;
+
+}
+
+/* Add spacing between buttons */
+.fc-toolbar .fc-toolbar-chunk {
+  display: flex;
+  gap: 8px; /* Adjust the gap as needed */
+}
+
+.fc-direction-ltr .fc-button-group > .fc-button:not(:first-child) {
+    border-bottom-right-radius: 6px;
+    border-top-right-radius: 6px;
+}
+
+.fc .fc-button-group > .fc-button{
+    margin: 8px;
+}
+
+.fc-prev-button.fc-button.fc-button-primary {
+    margin-right: 0px !important;
+}
+
+.fc-today-button.fc-button.fc-button-primary {
+    border-radius: 6px !important;
+}
