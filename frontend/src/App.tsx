@@ -3,6 +3,7 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
+import InputPrompt from "./components/InputPrompt";
 
 const App: React.FC = () => {
   return (
@@ -18,6 +19,7 @@ const App: React.FC = () => {
           { title: "Event 2", date: "2025-02-22" },
         ]}
       />
+      <InputPrompt />
     </div>
   );
 };
