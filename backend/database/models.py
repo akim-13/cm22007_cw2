@@ -83,6 +83,7 @@ class Achievements(ORM_Base):
     
     achievementID = Column(Integer, primary_key=True, index=True, nullable=False)
     
+    requiredPoints = Column(Integer, nullable=False)
     title = Column(String, nullable=False)
     description = Column(String, nullable=False)
     
