@@ -2,21 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Custom Time Grid Slot Styling */
 .fc-timegrid-slot {
   @apply h-[60px] !important;
 }
 
-/* Optional: Style Event Blocks */
 .fc-event {
   @apply text-white rounded-md shadow-md p-2;
 
 }
 
-/* Add spacing between buttons */
 .fc-toolbar .fc-toolbar-chunk {
   display: flex;
-  gap: 8px; /* Adjust the gap as needed */
+  gap: 8px; 
 }
 
 .fc-direction-ltr .fc-button-group > .fc-button:not(:first-child) {
