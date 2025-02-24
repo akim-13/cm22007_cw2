@@ -17,12 +17,12 @@
     
     <div style="margin-top: 20px;">
         {% if task.completed %}
-        <a class="ui gray button" href="/update/{{ task.taskID }}">Mark incomplete</a>   
+        <a class="ui gray button" href="/incomplete_task/{{ task.taskID }}">Mark incomplete</a>   
         {% else %}
-        <a class="ui small blue button" href="/update/{{ task.taskID }}">Mark complete</a>
+        <a class="ui small blue button" href="/complete_task/{{ task.taskID }}">Mark complete</a>
         {% endif %}
         
-        <a class="ui small centre red button" href="/delete/{{ task.taskID }}">🗑️</a>
+        <a class="ui small centre red button" href="/delete_task/{{ task.taskID }}">🗑️</a>
     </div>
 </div>
 {% endfor %}

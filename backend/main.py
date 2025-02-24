@@ -34,7 +34,8 @@ templates = Jinja2Templates(directory="backend/templates")
 ORM_Base.metadata.create_all(bind=engine)  # Create tables
 global_db = SessionLocal()
 
-user = global_db.query(User).filter(User.username == "joe")
+user = global_db.query(User).filter(User.username == "joe").all()
+
 if not user:
     global_db.add(models.User(username="joe", hashedPassword="x", streakDays=0, currentPoints=0, stressLevel=0))
     global_db.commit()
@@ -57,24 +58,9 @@ def home_page(request: Request, db: Session = Depends(yield_db)):
     return templates.TemplateResponse("home.html", {"request": request, "user_tasks": user_tasks})
 
 
-# title is expected as a form parameter (purpose of ellipses ...)
-@app.post("/add", response_class=HTMLResponse)
-def add(request: Request, 
-        title: str = Form(...), 
-        description: str = Form(...),
-        duration: int = Form(...),
-        priority: int = Form(...), 
-        deadline: datetime = Form(...), 
-        db: Session = Depends(yield_db)):
-    
-    new_task = models.Task(
-        title=title, 
-        description=description, 
-        duration=duration, 
-        priority=priority, 
-        deadline=deadline, 
-        username="joe")
-    
+@app.post("/add_task", response_class=HTMLResponse)
+def add(request: Request, title: str = Form(...), description: str = Form(...),duration: int = Form(...),priority: int = Form(...), deadline: datetime = Form(...), db: Session = Depends(yield_db)):
+    new_task = models.Task(title=title, description=description, duration=duration, priority=priority, deadline=deadline, username="joe")
     db.add(new_task)
     db.commit()
     
@@ -82,42 +68,22 @@ def add(request: Request,
     return RedirectResponse(url=url, status_code=status.HTTP_303_SEE_OTHER)
 
 
-@app.delete("/delete/{task_id}", response_class=HTMLResponse)
-def delete(request: Request, task_id: int, db: Session = Depends(yield_db)):
-    task = db.query(models.Task).filter(models.Task.taskID == task_id).first()
-    db.delete(task)
-    db.commit()
-
-    url = app.url_path_for("home")
-    return RedirectResponse(url=url, status_code=status.HTTP_302_FOUND)
+@app.delete("/delete_task/{task_id}", response_class=HTMLResponse)
+def delete_task(request: Request, task_id: int, db: Session = Depends(yield_db)):
+    response = tasks_service.delete_task(task_id, db)
+    return JSONResponse(status_code = 200, content = response)
 
 
-@app.get("/update/{task_id}", response_class=JSONResponse)
-def update(request: Request, task_id: int, db: Session = Depends(yield_db)):
+@app.put("/complete_task/{task_id}", response_class=JSONResponse)
+def complete_task(request: Request, task_id: int, db: Session = Depends(yield_db)):
     response = tasks_service.set_task_complete(task_id, db)
+    return JSONResponse(status_code = 200, content = response)
 
-    return JSONResponse(
-            status_code = 200,
-            content = response)
-    
 
-@app.get("/update_achievements/{task_id}")
-def update_task(request: Request, task_id: int, db: Session = Depends(yield_db)):
-    new_achievements = update(task_id, db)
-    
-    if new_achievements:
-        return JSONResponse(
-            status_code = 200,
-            content = {
-                "message": "Task completed successfully",
-                "achievements_unlocked": new_achievements
-            }
-        )
-        
-    return JSONResponse(
-        status_code=200,
-        content={"message": "Task completed, but no new achievements unlocked."}
-    ) 
+@app.put("/incomplete_task/{task_id}", response_class=JSONResponse)
+def incomplete_task(request: Request, task_id: int, db: Session = Depends(yield_db)):
+    response = tasks_service.set_task_incomplete(task_id, db)
+    return JSONResponse(status_code = 200, content = response)
     
     
 if __name__ == "__main__":
