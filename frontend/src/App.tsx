@@ -23,6 +23,7 @@ const App: React.FC = () => {
       <h2 className="mt-4">Task List</h2>
 
       {/* Task cards to test all features */}
+      {/* Haven't checked if no othertasks works correctly should though.... */}
       <TaskCard 
         title="Develop API Endpoints" 
         priority="high" 
