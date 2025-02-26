@@ -1,16 +1,24 @@
 from database.models import Task, User
 from sqlalchemy.orm import Session
 from services import achievements_service
-import logging
+from tools import convertToJson
 
-logger = logging.getLogger('uvicorn.error')
-logger.setLevel(logging.DEBUG)
-            
+
+def get_user_task_obj(username: str, db: Session) -> list[Task]:
+    return db.query(Task).filter(Task.username == username).all()
+
+
+def get_user_task(username: str, db: Session) -> dict:
+    tasks = db.query(Task).filter(User.username == username).all()
+    json_tasks = [convertToJson(task) for task in tasks]
+    return {"tasks": json_tasks}
+    
+
             
 def set_task_complete(task_id: int, db: Session) -> dict:
     task: Task = db.query(Task).filter(Task.taskID == task_id).first()
     
-    if not task or task.isCompleted:  
+    if not task or task.isCompleted:
         return {"task_changed": False}
     
     task.user.currentPoints += task.duration

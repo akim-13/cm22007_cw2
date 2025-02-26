@@ -23,7 +23,7 @@ class User(ORM_Base):
     
     @property
     def events(self):
-        [event for task in self.tasks for event in task.events]  # returns all events related to this user    
+        return [event for task in self.tasks for event in task.events]  # returns all events related to this user    
     
 
 
