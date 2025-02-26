@@ -4,7 +4,7 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 
-const Calendar: React.FC = () => {
+const Calendar: React.FC<any> = ({ events }) => {
     const handleAchievementsClick = () => {
         //Add your achievements logic here
         alert('Achievements panel will be shown here');
@@ -50,11 +50,7 @@ const Calendar: React.FC = () => {
                     textColor: 'white', 
                 },
                 {
-                    events: [
-                        { title: 'Task 1', start: '2025-02-25T10:00:00'},
-                        { title: 'Task 2', start: '2025-02-23T13:00:00'},
-                        { title: 'Task 3', start: '2025-02-23T09:00:00' } 
-                    ],
+                    events: events,
                     color: 'rgb(255,99,132)', 
                     textColor: 'black', 
                 }
