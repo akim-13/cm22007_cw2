@@ -4,7 +4,7 @@ import logging  # To debug -> Can't print, as the file isn't executed normally
 # DB stuff
 from sqlalchemy.orm import Session
 from database import models, SessionLocal, engine, ORM_Base, User
-from services import achievements_service, tasks_service
+from services import achievements_service, tasks_service, task_scheduler, event_service
 
 # FastAPI stuff
 from fastapi import FastAPI, Depends, Request, Form, status
@@ -52,10 +52,9 @@ def yield_db():
 
 @app.get("/", name="home")
 def home_page(request: Request, db: Session = Depends(yield_db)):
-    user_tasks = db.query(models.Task).all()
-    logger.debug(user_tasks)
-    logger.debug(len(user_tasks))
-    return templates.TemplateResponse("home.html", {"request": request, "user_tasks": user_tasks})
+    tasks = tasks_service.get_user_task_obj("joe", db)
+    
+    return templates.TemplateResponse("home.html", {"request": request, "user_tasks": tasks})
 
 
 @app.post("/add_task", response_class=HTMLResponse)
@@ -68,21 +67,33 @@ def add(request: Request, title: str = Form(...), description: str = Form(...),d
     return RedirectResponse(url=url, status_code=status.HTTP_303_SEE_OTHER)
 
 
-@app.delete("/delete_task/{task_id}", response_class=HTMLResponse)
-def delete_task(request: Request, task_id: int, db: Session = Depends(yield_db)):
-    response = tasks_service.delete_task(task_id, db)
+@app.delete("/delete_task/{taskID}", response_class=HTMLResponse)
+def delete_task(request: Request, taskID: int, db: Session = Depends(yield_db)):
+    response = tasks_service.delete_task(taskID, db)
     return JSONResponse(status_code = 200, content = response)
 
 
-@app.put("/complete_task/{task_id}", response_class=JSONResponse)
-def complete_task(request: Request, task_id: int, db: Session = Depends(yield_db)):
-    response = tasks_service.set_task_complete(task_id, db)
+@app.put("/complete_task/{taskID}", response_class=JSONResponse)
+def complete_task(request: Request, taskID: int, db: Session = Depends(yield_db)):
+    response = tasks_service.set_task_complete(taskID, db)
     return JSONResponse(status_code = 200, content = response)
 
 
-@app.put("/incomplete_task/{task_id}", response_class=JSONResponse)
-def incomplete_task(request: Request, task_id: int, db: Session = Depends(yield_db)):
-    response = tasks_service.set_task_incomplete(task_id, db)
+@app.put("/incomplete_task/{taskID}", response_class=JSONResponse)
+def incomplete_task(request: Request, taskID: int, db: Session = Depends(yield_db)):
+    response = tasks_service.set_task_incomplete(taskID, db)
+    return JSONResponse(status_code = 200, content = response)
+
+
+@app.put("/breakdown_task/{taskID}", response_class=JSONResponse)
+def breakdown_task(request: Request, taskID: int, db: Session = Depends(yield_db)):
+    response = task_scheduler.break_down_add_events("joe", taskID, db)
+    return JSONResponse(status_code = 200, content = response)
+
+
+@app.get("/get_events_from_task/{taskID}", response_class=JSONResponse)
+def get_events_from_task(request: Request, taskID: int, db: Session = Depends(yield_db)):
+    response = event_service.get_events_from_task(taskID, db)
     return JSONResponse(status_code = 200, content = response)
     
     
