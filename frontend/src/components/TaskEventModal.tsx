@@ -1,13 +1,9 @@
+import React, { useState, useRef } from "react";
 import { Dialog, DialogTitle } from "@headlessui/react";
-import React from "react";
 
 interface TaskEventModalProps {
     isModalOpen: boolean;
     setIsModalOpen: (value: boolean) => void;
-    isTaskMode: boolean;
-    setIsTaskMode: (value: boolean) => void;
-    newEvent: any;
-    setNewEvent: (event: any) => void;
     events: InputEvent[];
     setEvents: (events: InputEvent[]) => void;
 }
@@ -45,20 +41,13 @@ const ModeToggleButton: React.FC<ModeToggleButtonProps> = ({ mode, isActive, set
   );
 };
 
-
+// TODO: Use the extra properties interface defined in App.tsx
 const TaskEventModal: React.FC<TaskEventModalProps> = ({ 
     events, setEvents, 
-    newEvent, setNewEvent,
     isModalOpen, setIsModalOpen, 
-    isTaskMode, setIsTaskMode 
 }) => {
-    const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-        // Default start to now.
-        setEvents([...events, {...newEvent, start: new Date().toISOString()}]);
-        setIsModalOpen(false);
-    };
-
+    const newEvent = useRef<{ [key: string]: any }>({});
+    const [isTaskMode, setIsTaskMode] = useState(true);
 
     const handleInputChange = (
       event: React.ChangeEvent<HTMLInputElement> |
@@ -68,7 +57,14 @@ const TaskEventModal: React.FC<TaskEventModalProps> = ({
         // The spread operator {...x, y} copies the fields from the old object x to the new one y
         // to ensure that changing one fieild doesn't delete the others. The [] syntax is for
         // evaluating event.target.name and making the evaluated expression the key.
-        setNewEvent({...newEvent, [event.target.name]: event.target.value});
+        newEvent.current[event.target.name] = event.target.value;
+    };
+
+
+    const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        setEvents([...events, { ...newEvent.current, start: newEvent.current.start || new Date().toISOString() }]);
+        setIsModalOpen(false);
     };
 
 

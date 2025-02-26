@@ -1,12 +1,9 @@
+import React, { useState, useMemo } from "react";
+import Calendar from './components/Calendar';
 import TaskEventModal from "./components/TaskEventModal";
 
-import React, { useState } from "react";
-//import './styles/fullcalendar.css';
-import { EventInput } from "@fullcalendar/core";
-import FullCalendar from "@fullcalendar/react";
-import dayGridPlugin from "@fullcalendar/daygrid";
-import timeGridPlugin from "@fullcalendar/timegrid";
-import interactionPlugin from "@fullcalendar/interaction";
+// TODO: Check if this is needed.
+import './styles/fullcalendar.css';
 
 interface EventExtras {
     // Commented out are the properties of FullCalendar's EventInput.
@@ -30,57 +27,36 @@ interface TaskExtras {
 
 const App: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [isTaskMode, setIsTaskMode] = useState(true);
-    const [newEvent, setNewEvent] = useState<EventInput>({});
-    const [events, setEvents] = useState<EventInput[]>([{title: "testevent", start: new Date().toISOString()}]);
+    const [events, setEvents] = useState<EventInput[]>([
+        { title: "testevent", start: new Date().toISOString() },
+        { title: 'Task 1', start: '2025-02-25T10:00:00' },
+        { title: 'Task 2', start: '2025-02-23T13:00:00' },
+        { title: 'Task 3', start: '2025-02-23T09:00:00' },
+    ]);
+
+    // FIXME: Doesn't work, the calendar is still re-rendered when modal is open.
+    // Memoize events so they don't get a new reference unless updated
+    const memoizedEvents = useMemo(() => events, [events]);
 
     return (
     <div className="p-5 h-screen fixed top-0 bottom-0 left-0 right-0">
-      
+
       {/* If the function isn't wrapped in lambda, it will execute immediately when rendered. */}
       <button onClick={() => setIsModalOpen(true)}>Create event</button>
 
-        { 
-            isModalOpen && (
-                <TaskEventModal
-                    events={events}
-                    setEvents={setEvents}
-                    newEvent={newEvent}
-                    setNewEvent={setNewEvent}
-                    isModalOpen={isModalOpen}
-                    setIsModalOpen={setIsModalOpen}
-                    isTaskMode={isTaskMode}
-                    setIsTaskMode={setIsTaskMode}
-                />
-            )
-        }
-      
-      <FullCalendar
-        plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-        initialView="timeGridWeek"
-        editable={true}
-        selectable={true}
-        height="95%"
-        timeZone="local"
-        headerToolbar={{
-          left: 'prev,next,today',
-          center: 'title',
-          right: ''
-        }}
-        events={events}
-        views={{
-          timeGridWeek: {
-            type: 'timeGrid',
-            slotDuration: '01:00:00',
-            slotLabelInterval: '01:00:00',
-          }
-        }}
-        scrollTime={'09:00:00'}
-        eventBorderColor="white"
-        eventColor="rgb(59,130,246)"
-      />
+        {isModalOpen && (
+            <TaskEventModal
+                events={memoizedEvents}
+                setEvents={setEvents}
+                isModalOpen={isModalOpen}
+                setIsModalOpen={setIsModalOpen}
+            />
+        )}
+
+        <Calendar events={memoizedEvents}/>
+
     </div>
     );
 };
 
-export default App
+export default App;
