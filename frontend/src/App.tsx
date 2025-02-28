@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from "react";
 import Calendar from './components/Calendar';
 import TaskEventModal from "./components/TaskEventModal";
+import TaskCard from "./components/TaskCard";
 
 // TODO: Check if this is needed.
 import './styles/fullcalendar.css';
@@ -55,8 +56,21 @@ const App: React.FC = () => {
 
         <Calendar events={memoizedEvents}/>
 
+        <h2 className="mt-4">Task List</h2>
+
+        <TaskCard 
+            title="Develop API Endpoints" 
+            priority="high" 
+            duration="6 hours" 
+            deadline="2025-03-01" 
+            description="Build and test backend endpoints for user authentication and data retrieval."
+            dropdown={true} 
+            otherTasks={["Set up database", "Create routes", "Implement security measures"]} 
+        />
+
     </div>
     );
 };
 
 export default App;
+
