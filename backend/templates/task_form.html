@@ -1,0 +1,21 @@
+<form class="ui form" action="/add_task" method="post">
+    <div class="field">
+
+        <label>Enter title</label>
+        <input type="text" name="title" placeholder="Task title here"><br><br>
+
+        <label>Enter description</label>
+        <input type="text" name="description" placeholder="Description here"><br><br>
+
+        <label>Enter duration: Net amount of time in minutes for this task</label>
+        <input type="number" min="1" name="duration" placeholder="Duration here"><br><br>
+
+        <label>Enter priority, 1 being the highest and ascending numbers being lower priority</label>
+        <input type="number" min="1" max="20" name="priority" placeholder="Priority as a number"><br><br>
+
+        <label>Enter deadline</label>
+        <input type="datetime-local" name="deadline" placeholder="YYYY-MM-DD HH:MM"><br><br>
+        
+    </div>
+    <button class="ui blue button" type="submit">Create new task</button>
+</form>
