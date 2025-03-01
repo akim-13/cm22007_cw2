@@ -7,10 +7,14 @@ from config import DATABASE_URL
 # This ensures other threads can access the connection
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 
+# Create Object Relation Mapping (ORM) base for classes to inherit from
+ORM_Base = declarative_base()
+
 # Need to explicitly call db.commit()
 # Flush means reload
 # All sessions use the engine provided
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)  # This is known as a session factory 
 
-# Create Object Relation Mapping (ORM) base for classes to inherit from
-ORM_Base = declarative_base()
+
+
+

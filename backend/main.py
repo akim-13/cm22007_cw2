@@ -4,6 +4,7 @@ import logging  # To debug -> Can't print, as the file isn't executed normally
 # DB stuff
 from sqlalchemy.orm import Session
 from database import models, SessionLocal, engine, ORM_Base, User
+from database.models import Achievements
 from services import achievements_service, tasks_service, task_scheduler, event_service
 
 # FastAPI stuff
@@ -33,6 +34,85 @@ templates = Jinja2Templates(directory="backend/templates")
 
 ORM_Base.metadata.create_all(bind=engine)  # Create tables
 global_db = SessionLocal()
+
+
+# List of default achievements
+default_achievements = [
+    {
+        "title": "Just Getting Started",
+        "requiredPoints": 10,
+        "description": "Completed the first 10 minutes of focused work.",
+        "image_path": "images/achievements/start.png"
+    },
+    {
+        "title": "Half-Hour Hero",
+        "requiredPoints": 30,
+        "description": "Spent 30 minutes on a task. You're getting into the flow!",
+        "image_path": "images/achievements/half_hour.png"
+    },
+    {
+        "title": "One-Hour Warrior",
+        "requiredPoints": 60,
+        "description": "Dedicated an hour to your task. Strong focus!",
+        "image_path": "images/achievements/one_hour.png"
+    },
+    {
+        "title": "Time Master",
+        "requiredPoints": 120,
+        "description": "Worked for 2 hours in total. Your discipline is growing.",
+        "image_path": "images/achievements/time_master.png"
+    },
+    {
+        "title": "Deep Focus Apprentice",
+        "requiredPoints": 300,
+        "description": "Spent 5 hours focused. Impressive commitment!",
+        "image_path": "images/achievements/deep_focus.png"
+    },
+    {
+        "title": "Productivity Pro",
+        "requiredPoints": 600,
+        "description": "10 hours of total focus. You're a work machine!",
+        "image_path": "images/achievements/productivity_pro.png"
+    },
+    {
+        "title": "Task Titan",
+        "requiredPoints": 1200,
+        "description": "20 hours spent on tasks. An unstoppable force!",
+        "image_path": "images/achievements/task_titan.png"
+    },
+    {
+        "title": "Legend of Focus",
+        "requiredPoints": 2400,
+        "description": "40 hours of deep work. You’re in the hall of fame now!",
+        "image_path": "images/achievements/legend_of_focus.png"
+    },
+    {
+        "title": "Master of Time",
+        "requiredPoints": 5000,
+        "description": "83+ hours in tasks. True dedication!",
+        "image_path": "images/achievements/master_of_time.png"
+    },
+    {
+        "title": "God of Productivity",
+        "requiredPoints": 10000,
+        "description": "166+ hours. Beyond human limits!",
+        "image_path": "images/achievements/god_of_productivity.png"
+    }
+]
+
+
+def initialize_achievements():
+    """Check if achievements exist and insert them if missing."""
+    if global_db.query(Achievements).count() == 0:  # Only add if table is empty
+        for data in default_achievements:
+            new_achievement = Achievements(**data)
+            global_db.add(new_achievement)
+        global_db.commit()
+    
+    else:
+        print("Achievements already exist, skipping population.")
+#Call it once to populate the achievements table
+initialize_achievements()
 
 user = global_db.query(User).filter(User.username == "joe").all()
 
@@ -95,7 +175,19 @@ def breakdown_task(request: Request, taskID: int, db: Session = Depends(yield_db
 def get_events_from_task(request: Request, taskID: int, db: Session = Depends(yield_db)):
     response = event_service.get_events_from_task(taskID, db)
     return JSONResponse(status_code = 200, content = response)
-    
+
+
+@app.get("/check_achievements")
+def check_achievements(db: Session = Depends(yield_db)):
+    achievements = db.query(Achievements).all()
+    return achievements
+
+
+@app.get("/get_achievements_from_user/{username}", response_class=JSONResponse)
+def get_achievements_from_user(request: Request, username: str, db: Session = Depends(yield_db)):
+    response = achievements_service.get_from_user(username, db)
+    return JSONResponse(status_code = 200, content = response)
+
     
 if __name__ == "__main__":
     import uvicorn

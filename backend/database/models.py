@@ -1,7 +1,6 @@
 from sqlalchemy import Boolean, Column, Integer, String, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
-
-from database.dbsetup import ORM_Base
+from .dbsetup import ORM_Base
 
 
 class User(ORM_Base):
@@ -87,6 +86,7 @@ class Achievements(ORM_Base):
     requiredPoints = Column(Integer, nullable=False)
     title = Column(String, nullable=False)
     description = Column(String, nullable=False)
+    image_path = Column(String)
     
     
 
