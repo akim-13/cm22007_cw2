@@ -32,8 +32,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.mount("/static", StaticFiles(directory="backend/static"), name="static")
-templates = Jinja2Templates(directory="backend/templates")
+app.mount("/static", StaticFiles(directory="static"), name="static")
+templates = Jinja2Templates(directory="templates")
 
 ORM_Base.metadata.create_all(bind=engine)  # Create tables
 global_db = SessionLocal()
@@ -192,17 +192,20 @@ def get_achievements_from_user(request: Request, username: str, db: Session = De
 
 @app.post("/add_calendar/", response_class=JSONResponse)
 def add_calendar(request: Request, data:dict, db: Session = Depends(yield_db)):
-    #Add check function what events were created by the same link.
-    #this will delete all tasks linked to this link and re-sync
-
 
     url = data.get("ics_url")
     if not url:
         return {"error" : "No ics URL provided"}
 
+    #Add check function what events were created by the same link.
+    #this will delete all tasks linked to this link and re-sync
+
+    check = calendar_to_events.check_cal(url, db)
+    
+
     new_events = calendar_to_events.get_event(url)
     for i in new_events:
-        new_event = models.Standalone_Event(start = i[1], end = i[2], standaloneEventName = i[0], standaloneEventDescription = i[3], username = "joe")
+        new_event = models.Standalone_Event(start = i[1], end = i[2], standaloneEventName = i[0], standaloneEventDescription = i[3], eventBy = i[4], username = "joe")
         db.add(new_event)
     db.commit()
 
