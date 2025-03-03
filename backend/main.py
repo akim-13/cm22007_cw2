@@ -14,6 +14,9 @@ from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
+import calendar_to_events
+
+
 logger = logging.getLogger('uvicorn.error')
 logger.setLevel(logging.DEBUG)
 
@@ -176,7 +179,6 @@ def get_events_from_task(request: Request, taskID: int, db: Session = Depends(yi
     response = event_service.get_events_from_task(taskID, db)
     return JSONResponse(status_code = 200, content = response)
 
-
 @app.get("/check_achievements")
 def check_achievements(db: Session = Depends(yield_db)):
     achievements = db.query(Achievements).all()
@@ -188,7 +190,25 @@ def get_achievements_from_user(request: Request, username: str, db: Session = De
     response = achievements_service.get_from_user(username, db)
     return JSONResponse(status_code = 200, content = response)
 
+@app.post("/add_calendar/", response_class=JSONResponse)
+def add_calendar(request: Request, data:dict, db: Session = Depends(yield_db)):
+    #Add check function what events were created by the same link.
+    #this will delete all tasks linked to this link and re-sync
+
+
+    url = data.get("ics_url")
+    if not url:
+        return {"error" : "No ics URL provided"}
+
+    new_events = calendar_to_events.get_event(url)
+    for i in new_events:
+        new_event = models.Standalone_Event(start = i[1], end = i[2], standaloneEventName = i[0], standaloneEventDescription = i[3], username = "joe")
+        db.add(new_event)
+    db.commit()
+
+    return JSONResponse(status_code=200, content="complete")
     
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, access_log=True, log_level="debug")
