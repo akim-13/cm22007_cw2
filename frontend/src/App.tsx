@@ -43,7 +43,7 @@ const App: React.FC = () => {
     return (
         <div className="flex h-screen w-full">
             {/* Task Card on the left */}
-            <div className="flex-none w-1/5 p-4 border-r border-gray-300">
+            <div className="flex-none w-[300px] p-4 border-r border-gray-300">
                 <TaskCard 
                     title="Develop API Endpoints" 
                     priority="high" 
