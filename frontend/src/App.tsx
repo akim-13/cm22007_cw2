@@ -2,6 +2,7 @@ import React, { useState, useMemo } from "react";
 import Calendar from './components/Calendar';
 import TaskEventModal from "./components/TaskEventModal";
 import TaskCard from "./components/TaskCard";
+import InputPrompt from "./components/InputPrompt";
 
 // TODO: Check if this is needed.
 import './styles/fullcalendar.css';
@@ -40,34 +41,37 @@ const App: React.FC = () => {
     const memoizedEvents = useMemo(() => events, [events]);
 
     return (
-    <div className="p-5 h-screen fixed top-0 bottom-0 left-0 right-0">
-        {/* Remove the standalone create event button from here */}
-        
-        {isModalOpen && (
-            <TaskEventModal
-                events={memoizedEvents}
-                setEvents={setEvents}
-                isModalOpen={isModalOpen}
-                setIsModalOpen={setIsModalOpen}
-            />
-        )}
+        <div className="flex h-screen w-full">
+            {/* Task Card on the left */}
+            <div className="flex-none w-1/5 p-4 border-r border-gray-300">
+                <TaskCard 
+                    title="Develop API Endpoints" 
+                    priority="high" 
+                    duration="6 hours" 
+                    deadline="2025-03-01" 
+                    description="Build and test backend endpoints for user authentication and data retrieval."
+                    dropdown={true} 
+                    otherTasks={["Set up database", "Create routes", "Implement security measures"]} 
+                />
+            </div>
 
-        {/* Pass setIsModalOpen function to Calendar component */}
-        <Calendar events={memoizedEvents} setIsModalOpen={setIsModalOpen}/>
-
-        <h2 className="mt-4">Task List</h2>
-
-        <TaskCard 
-            title="Develop API Endpoints" 
-            priority="high" 
-            duration="6 hours" 
-            deadline="2025-03-01" 
-            description="Build and test backend endpoints for user authentication and data retrieval."
-            dropdown={true} 
-            otherTasks={["Set up database", "Create routes", "Implement security measures"]} 
-        />
-
-    </div>
+            {/* Main content on the right */}
+            <div className="flex-grow p-6">
+                {isModalOpen && (
+                    <TaskEventModal
+                    events={memoizedEvents}
+                    setEvents={setEvents}
+                    isModalOpen={isModalOpen}
+                    setIsModalOpen={setIsModalOpen}
+                    />
+                )}
+                <Calendar events={memoizedEvents} setIsModalOpen={setIsModalOpen} />
+                <div className="pt-4">
+                    <InputPrompt />
+                </div>
+                    
+            </div>
+        </div>
     );
 };
 
