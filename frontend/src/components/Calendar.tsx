@@ -3,9 +3,10 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
-import AchievementModal from "./AchievementModal"; // Import the new component
+import AchievementModal from "./AchievementModal";
 
-const Calendar: React.FC<any> = ({ events }) => {
+// Add setIsModalOpen to the component props
+const Calendar: React.FC<any> = ({ events, setIsModalOpen }) => {
     const [isAchievementModalOpen, setIsAchievementModalOpen] = useState(false);
 
     const handleAchievementsClick = () => {
@@ -16,6 +17,11 @@ const Calendar: React.FC<any> = ({ events }) => {
         //Add your settings logic here
         alert('Settings panel will be shown here');
     }
+
+    // Add handler for create event button
+    const handleCreateEventClick = () => {
+        setIsModalOpen(true);
+    };
 
     return (
         <>
@@ -29,7 +35,7 @@ const Calendar: React.FC<any> = ({ events }) => {
                 headerToolbar={{
                     left: 'prev,next,today,title',
                     center: '',
-                    right: 'achievements,settings'
+                    right: 'createEvent,achievements,settings'
                 }}
                 titleFormat={
                     { month: 'short', day: 'numeric' ,year: "numeric"}
@@ -42,6 +48,10 @@ const Calendar: React.FC<any> = ({ events }) => {
                     settings: {
                         text: 'Settings',
                         click: handleSettingsClick
+                    },
+                    createEvent: {
+                        text: 'Create Event',
+                        click: handleCreateEventClick
                     }
                 }}
                 eventSources={[
