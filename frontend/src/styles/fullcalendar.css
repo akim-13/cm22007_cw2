@@ -57,3 +57,7 @@
   justify-content: space-between;
   position: relative; /* Ensure the parent is positioned relative */
 }
+
+.fc-createEvent-button.fc-button.fc-button-primary {
+  border-radius: 6px !important;
+}

@@ -41,10 +41,8 @@ const App: React.FC = () => {
 
     return (
     <div className="p-5 h-screen fixed top-0 bottom-0 left-0 right-0">
-
-      {/* If the function isn't wrapped in lambda, it will execute immediately when rendered. */}
-      <button onClick={() => setIsModalOpen(true)}>Create event</button>
-
+        {/* Remove the standalone create event button from here */}
+        
         {isModalOpen && (
             <TaskEventModal
                 events={memoizedEvents}
@@ -54,7 +52,8 @@ const App: React.FC = () => {
             />
         )}
 
-        <Calendar events={memoizedEvents}/>
+        {/* Pass setIsModalOpen function to Calendar component */}
+        <Calendar events={memoizedEvents} setIsModalOpen={setIsModalOpen}/>
 
         <h2 className="mt-4">Task List</h2>
 
@@ -73,4 +72,3 @@ const App: React.FC = () => {
 };
 
 export default App;
-
