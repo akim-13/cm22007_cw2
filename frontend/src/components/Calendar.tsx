@@ -30,7 +30,7 @@ const Calendar: React.FC<any> = ({ events, setIsModalOpen }) => {
                 initialView="timeGridWeek"
                 editable={true}
                 selectable={true}
-                height="95%"
+                height="90%"
                 timeZone="local"
                 headerToolbar={{
                     left: 'prev,next,today,title',
