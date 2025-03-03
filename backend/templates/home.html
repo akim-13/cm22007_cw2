@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div style="margin-top: 30px;" class="ui container">
+    <h1 class="ui center aligned header">Taskinator 1000</h1><br>
+    <div class="ui grid" style="margin-top: 30px;">
+        <div style="width: 300px; height: 590px;" class="ui Colored-Variation-Class message">
+            <h2 class="ui left aligned header">Add Tasks</h2><br>
+            {% include 'task_form.html' %}
+        </div>
+
+        <div style="width: 600px; margin-left: 30px;">
+            <h2 class="ui centre aligned header">Current Todo Tasks</h2>
+            <div class="grid-container">
+                {% include 'task.html' %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
