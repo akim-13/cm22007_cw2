@@ -5,12 +5,14 @@ export default function InputPrompt() {
   const [input, setInput] = useState("");
 
   const handleSubmit = () => {
+    alert(`Input: ${input}`); // Displays the input string
     console.log("Input submitted:", input);
     setInput(""); // Clear input after submission
+    return input;
   };
 
   return (
-    <div className="flex items-center border-2 border-black rounded-3xl px-6 py-3 w-full max-w-2xl">
+    <div className="flex items-center border-2 border-black rounded-3xl px-6 py-3 w-full">
       <div className="relative flex-grow">
         <input
           type="text"
