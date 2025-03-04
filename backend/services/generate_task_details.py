@@ -15,13 +15,7 @@ class TaskModelOutput(BaseModel):
     deadline: str
     durationMinutes: int
 
-class Task():
-    def __init__(self, title: Optional[str], description: Optional[str], deadline: Optional[datetime.datetime], durationMinutes: Optional[int]):
-        self.title = title
-        self.description = description
-        self.deadline = deadline
-        self.durationMinutes = durationMinutes
-
+class Task(BaseModel):
     title: Optional[str]
     description: Optional[str]
     deadline: Optional[datetime.datetime]
@@ -50,7 +44,7 @@ def validateDatetime(string: str) -> Optional[datetime.datetime]:
     except ValueError:
         return None
 
-def gen(description: str, currentDate: datetime.datetime):
+def gen(description: str, currentDate: datetime.datetime) -> Task:
     iso = currentDate.isoformat().split(".")[0]
     local = currentDate.strftime("%Y-%m-%d at %H:%M:%S on %A")
 
@@ -71,7 +65,7 @@ def gen(description: str, currentDate: datetime.datetime):
                 
                 f"Local time: {local}\n"
                 f"ISO time: {iso}"},
-            {"role": "user", "content": "Previous tasks for context:\n[Task 1]\nTitle:Finish Visual Computing code\nDescription:The code for visual computing needs to finished and uploaded for all team members to see before we start on the report,\nDeadline:2025-02-27T23:59:00\nDurationMinutes:480"},
+            # {"role": "user", "content": "Previous tasks for context:\n[Task 1]\nTitle:Finish Visual Computing code\nDescription:The code for visual computing needs to finished and uploaded for all team members to see before we start on the report,\nDeadline:2025-02-27T23:59:00\nDurationMinutes:480"},
             {"role": "user", "content": "User input:" + description},
         ],
         response_format=TaskModelOutput,
