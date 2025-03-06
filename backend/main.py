@@ -23,7 +23,7 @@ app = FastAPI()
 # Middleware is a function that is passed through every request before it's passed through a path operation
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5176"],  # Update with frontend URL
+    allow_origins=["http://localhost:5173"],  # Update with frontend URL
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -42,7 +42,8 @@ default_achievements = [
         "title": "Just Getting Started",
         "requiredPoints": 10,
         "description": "Completed the first 10 minutes of focused work.",
-        "image_path": "/images/achievements/start.png"
+        "image_path": "/images/achievements/start.png",
+
     },
     {
         "title": "Half-Hour Hero",
@@ -188,7 +189,14 @@ def get_achievements_from_user(request: Request, username: str, db: Session = De
     response = achievements_service.get_from_user(username, db)
     return JSONResponse(status_code = 200, content = response)
 
-    
+@app.get("/get_user_points/{username}")
+def get_user_points(username: str):
+    return {"username": username, "points": 120}
+
+# Isaac: For now, ive hard coded the amoount of points each user has but can someone create 
+# a column for the points
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, access_log=True, log_level="debug")

@@ -12,23 +12,26 @@ interface Achievement {
 interface AchievementModalProps {
   isOpen: boolean;
   onClose: () => void;
-  username?: string; // Optional username prop
+  username?: string; 
 }
 
 const AchievementModal: React.FC<AchievementModalProps> = ({ 
   isOpen, 
   onClose, 
-  username = "joe" // Default username for testing
+  username = "joe" 
 }) => {
   const [achievements, setAchievements] = useState<Achievement[]>([]);
-  const [userAchievements, setUserAchievements] = useState<number[]>([]);
+  const [userPoints, setUserPoints] = useState<number>(0);
   const [filter, setFilter] = useState<"all" | "completed" | "locked">("all");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (isOpen) {
-      fetchAchievements();
-      fetchUserAchievements();
+      const fetchData = async () => {
+        await Promise.all([fetchAchievements(), fetchUserPoints()]);
+        setLoading(false);
+      };
+      fetchData();
     }
   }, [isOpen, username]);
 
@@ -41,23 +44,22 @@ const AchievementModal: React.FC<AchievementModalProps> = ({
     }
   };
   
-  const fetchUserAchievements = async () => {
+  const fetchUserPoints = async () => {
     try {
-      console.log("Fetching achievements for user:", username); // Debugging output
-      const response = await axios.get(`http://localhost:8000/get_achievements_from_user/${username}`);
-      const userAchievementIds = response.data.achievements.map((ach: any) => ach.achievementID);
-      setUserAchievements(userAchievementIds);
-      setLoading(false);
+      console.log("Fetching points for user:", username); 
+      const response = await axios.get(`http://localhost:8000/get_user_points/${username}`);
+      setUserPoints(response.data.points);
     } catch (error) {
-      console.error("Error fetching user achievements:", error);
-      setLoading(false);
+      console.error("Error fetching user points:", error);
     }
   };
 
-  const filteredAchievements = achievements.map(achievement => ({
+  const computedAchievements = achievements.map(achievement => ({
     ...achievement,
-    completed: userAchievements.includes(achievement.achievementID)
-  })).filter(achievement => {
+    completed: userPoints >= achievement.requiredPoints
+  }));
+
+  const filteredAchievements = computedAchievements.filter(achievement => {
     if (filter === "all") return true;
     if (filter === "completed") return achievement.completed;
     if (filter === "locked") return !achievement.completed;
@@ -120,6 +122,10 @@ const AchievementModal: React.FC<AchievementModalProps> = ({
           >
             ✕
           </button>
+        </div>
+
+        <div style={{ marginBottom: "15px", fontWeight: "bold" }}>
+          Your Points: {userPoints}
         </div>
 
         <div style={{ marginBottom: "15px" }}>
@@ -192,9 +198,13 @@ const AchievementModal: React.FC<AchievementModalProps> = ({
               <div>
                 <div style={{ fontWeight: "bold" }}>
                   {achievement.title}
-                  {achievement.completed ? " (Completed)" : ` (Locked - ${achievement.requiredPoints} points)`}
+                  {achievement.completed ? " (Completed)" : ` (Locked - requires ${achievement.requiredPoints} points)`}
                 </div>
-                <div style={{ marginTop: "5px" }}>{achievement.description}</div>
+                <div style={{ marginTop: "5px" }}>
+                  {achievement.description}
+                  <br />
+                  <small>Progress: {userPoints} / {achievement.requiredPoints}</small>
+                </div>
               </div>
             </div>
           ))}
@@ -202,7 +212,7 @@ const AchievementModal: React.FC<AchievementModalProps> = ({
 
         <div style={{ marginTop: "20px", textAlign: "center" }}>
           <div>
-            You've completed {filteredAchievements.filter(a => a.completed).length} of {filteredAchievements.length} achievements
+            {filteredAchievements.filter(a => a.completed).length} of {filteredAchievements.length} achievements completed
           </div>
         </div>
       </div>
