@@ -27,6 +27,7 @@ interface TaskExtras {
     events?:      Event[] | null
 }
 
+
 const App: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [events, setEvents] = useState<EventInput[]>([
@@ -39,9 +40,9 @@ const App: React.FC = () => {
     // FIXME: Doesn't work, the calendar is still re-rendered when modal is open.
     // Memoize events so they don't get a new reference unless updated
     const memoizedEvents = useMemo(() => events, [events]);
-
     return (
-        <div className="flex h-screen w-full">
+        <div className="flex h-screen w-full justify-center">
+
             {/* Task Card on the left */}
             <div className="flex-none w-1/5 p-4 border-r border-gray-300">
                 <TaskCard 
@@ -56,16 +57,16 @@ const App: React.FC = () => {
             </div>
 
             {/* Main content on the right */}
-            <div className="flex-grow p-6">
-                {isModalOpen && (
+            <div className="flex-grow flex flex-col p-6">
                     <TaskEventModal
                     events={memoizedEvents}
                     setEvents={setEvents}
                     isModalOpen={isModalOpen}
                     setIsModalOpen={setIsModalOpen}
                     />
-                )}
+
                 <Calendar events={memoizedEvents} setIsModalOpen={setIsModalOpen} />
+
                 <div className="pt-4">
                     <InputPrompt />
                 </div>
@@ -73,6 +74,7 @@ const App: React.FC = () => {
             </div>
         </div>
     );
+
 };
 
 export default App;

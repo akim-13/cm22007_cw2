@@ -171,8 +171,8 @@ const TaskEventModal: React.FC<TaskEventModalProps> = ({
 
 
     return (
-      <Dialog open={isModalOpen} onClose={() => setIsModalOpen(false)} className="fixed inset-0 flex items-center justify-center">
-        <div className="bg-gray-200 p-6 rounded-lg shadow-lg w-[400px] min-h-[505px] flex flex-col">
+      <Dialog open={isModalOpen} onClose={() => setIsModalOpen(false)} className="fixed inset-0 flex z-[10000] items-center justify-center">
+        <div className="fixed bg-gray-200 p-6 rounded-lg shadow-lg w-[400px] min-h-[505px] flex flex-col">
 
           <DialogTitle className="text-lg font-bold text-black">
             {isTaskMode ? "Create Task" : "Create Event"}
