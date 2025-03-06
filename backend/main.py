@@ -5,7 +5,7 @@ import logging  # To debug -> Can't print, as the file isn't executed normally
 from sqlalchemy.orm import Session
 from database import models, SessionLocal, engine, ORM_Base, User
 from database.models import Achievements
-from services import achievements_service, tasks_service, task_scheduler, event_service
+from services import achievements_service, tasks_service, task_scheduler, event_service, generate_task_details
 
 # FastAPI stuff
 from fastapi import FastAPI, Depends, Request, Form, status
@@ -196,7 +196,12 @@ def get_user_points(username: str):
 # Isaac: For now, ive hard coded the amoount of points each user has but can someone create 
 # a column for the points
 
+@app.get("/autofill/{username}")
+def get_achievements_from_user(request: Request, username: str, description: str, db: Session = Depends(yield_db)) -> generate_task_details.Task:
+    details = generate_task_details.gen(description, datetime.now())
+    return details
 
+    
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, access_log=True, log_level="debug")
