@@ -5,8 +5,7 @@ import logging  # To debug -> Can't print, as the file isn't executed normally
 from sqlalchemy.orm import Session
 from database import models, SessionLocal, engine, ORM_Base, User
 from database.models import Achievements
-from services import achievements_service, tasks_service, task_scheduler, event_service, generate_task_details
-
+from services import achievements_service, tasks_service, task_scheduler, event_service, generate_task_details, standalone_event_service
 # FastAPI stuff
 from fastapi import FastAPI, Depends, Request, Form, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -139,7 +138,7 @@ def home_page(request: Request, db: Session = Depends(yield_db)):
 
 
 @app.post("/add_task", response_class=HTMLResponse)
-def add(request: Request, title: str = Form(...), description: str = Form(...),duration: int = Form(...),priority: int = Form(...), deadline: datetime = Form(...), db: Session = Depends(yield_db)):
+def add(request: Request, title: str = Form(...), description: str = Form(...), duration: int = Form(...),priority: int = Form(...), deadline: datetime = Form(...), db: Session = Depends(yield_db)):
     new_task = models.Task(title=title, description=description, duration=duration, priority=priority, deadline=deadline, username="joe")
     db.add(new_task)
     db.commit()
@@ -178,6 +177,28 @@ def get_events_from_task(request: Request, taskID: int, db: Session = Depends(yi
     return JSONResponse(status_code = 200, content = response)
 
 
+@app.post("/add_standalone_event", response_class=HTMLResponse)
+def add_standalone_event(request: Request, standaloneEventName: str = Form(...), standaloneEventDescription: str = Form(...), start: datetime = Form(...), end: datetime = Form(...), db: Session = Depends(yield_db)):
+    new_standalone_event = models.Standalone_Event(standaloneEventName=standaloneEventName, standaloneEventDescription=standaloneEventDescription, start=start, end=end, username="joe")
+    db.add(new_standalone_event)
+    db.commit()
+    
+    url = app.url_path_for("home")
+    return RedirectResponse(url=url, status_code=status.HTTP_303_SEE_OTHER)
+
+
+@app.delete("/delete_standalone_event/{standaloneEventID}", response_class=HTMLResponse)
+def delete_standalone_event(request: Request, standaloneEventID: int, db: Session = Depends(yield_db)):
+    response = standalone_event_service.delete_user_standalone_event(standaloneEventID, db)
+    return JSONResponse(status_code = 200, content = response)
+
+
+@app.get("/get_standalone_events/{username}", response_class=JSONResponse)
+def get_standalone_events(request: Request, username: str, db: Session = Depends(yield_db)):
+    response = standalone_event_service.get_user_standalone_events(username, db)
+    return JSONResponse(status_code = 200, content = response)
+
+
 @app.get("/check_achievements")
 def check_achievements(db: Session = Depends(yield_db)):
     achievements = db.query(Achievements).all()
@@ -189,6 +210,7 @@ def get_achievements_from_user(request: Request, username: str, db: Session = De
     response = achievements_service.get_from_user(username, db)
     return JSONResponse(status_code = 200, content = response)
 
+
 @app.get("/get_user_points/{username}")
 def get_user_points(username: str):
     return {"username": username, "points": 120}
@@ -197,7 +219,7 @@ def get_user_points(username: str):
 # a column for the points
 
 @app.get("/autofill/{username}")
-def get_achievements_from_user(request: Request, username: str, description: str, db: Session = Depends(yield_db)) -> generate_task_details.Task:
+def autofill(request: Request, username: str, description: str, db: Session = Depends(yield_db)) -> generate_task_details.Task:
     details = generate_task_details.gen(description, datetime.now())
     return details
 
