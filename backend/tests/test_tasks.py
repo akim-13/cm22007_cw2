@@ -10,6 +10,7 @@ sys.path.insert(
 from database.models import Task, User, Event
 from services.task_scheduler import break_down_add_events
 from services.tasks_service import get_user_tasks
+from services.event_service import get_events_from_task
 
 from database.dbsetup import ORM_Base, SessionLocal
 
@@ -52,13 +53,13 @@ def test_task(db):
     # Add 2 tasks
     task1 = Task(title="Maths coursework", 
                        description="important group maths coursework. I need to work on it at least 10 times before the deadline", 
-                       duration=700, 
+                       duration=1000, 
                        priority=1, 
                        deadline=datetime(2025, 4, 6, 20), username="test_user")
     
     task2 = Task(title="Painting", 
                        description="Work on my painting project where im drawing a detailed picture of the eiffel tower", 
-                       duration=700, 
+                       duration=500, 
                        priority=3, 
                        deadline=datetime(2025, 4, 17, 20), username="test_user")
     db.add(task1)
@@ -70,7 +71,18 @@ def test_task(db):
     assert tasks is not None
     assert len(tasks) == 2
     
+    # Break down a task, and:
+    # - check whether no. of events is >= how many we specified in the description of first task
+    # - check that the events have been added to the db by quering them
+    message = break_down_add_events("test_user", tasks[0].taskID, db)
+    assert message["events_added"] >= 10
     
-    # Next: Break down one of the tasks and see if it:
-    # - generates events for that task
-    # - breaks it down into appropriately spaced events
+    events = get_events_from_task(tasks[0].taskID, db).get("events")
+    assert events is not None
+    assert len(events) == message["events_added"]
+    
+    
+    
+    
+    
+    
