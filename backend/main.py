@@ -1,5 +1,4 @@
 from datetime import datetime
-import logging  # To debug -> Can't print, as the file isn't executed normally
 from config import default_achievements
 
 # DB stuff
@@ -14,9 +13,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-
-logger = logging.getLogger('uvicorn.error')
-logger.setLevel(logging.DEBUG)
 
 app = FastAPI()
 
@@ -36,7 +32,6 @@ templates = Jinja2Templates(directory="backend/templates")
 ORM_Base.metadata.create_all(bind=engine)  # Create tables
 global_db = SessionLocal()
 
-
 def initialize_achievements():
     """Check if achievements exist and insert them if missing."""
     if global_db.query(Achievements).count() == 0:  # Only add if table is empty
@@ -47,14 +42,6 @@ def initialize_achievements():
     
     else:
         print("Achievements already exist, skipping population.")
-#Call it once to populate the achievements table
-initialize_achievements()
-
-user = global_db.query(User).filter(User.username == "joe").all()
-
-if not user:
-    global_db.add(models.User(username="joe", hashedPassword="x", streakDays=0, currentPoints=0, stressLevel=0))
-    global_db.commit()
 
 # This creates new user db session each request
 # A global db var introduces issues with multiple users accessing same db session
@@ -136,7 +123,21 @@ def get_achievements_from_user(request: Request, username: str, description: str
     details = generate_task_details.gen(description, datetime.now())
     return details
 
-    
-if __name__ == "__main__":
+   
+   
+def run_app():
     import uvicorn
-    uvicorn.run(app, access_log=True, log_level="debug")
+        #Call it once to populate the achievements table
+    initialize_achievements()
+
+    user = global_db.query(User).filter(User.username == "joe").all()
+
+    if not user:
+        global_db.add(models.User(username="joe", hashedPassword="x", streakDays=0, currentPoints=0, stressLevel=0))
+        global_db.commit()
+    
+    uvicorn.run(app, access_log=True, log_level="debug")   
+   
+ 
+if __name__ == "__main__":
+    run_app()
