@@ -1,5 +1,6 @@
 from datetime import datetime
 import logging  # To debug -> Can't print, as the file isn't executed normally
+from fastapi import HTTPException
 
 # DB stuff
 from sqlalchemy.orm import Session
@@ -139,6 +140,10 @@ def home_page(request: Request, db: Session = Depends(yield_db)):
 
 @app.post("/add_task", response_class=HTMLResponse)
 def add(request: Request, title: str = Form(...), description: str = Form(...), duration: int = Form(...),priority: int = Form(...), deadline: datetime = Form(...), db: Session = Depends(yield_db)):
+    
+    if priority not in [0, 1, 2]:
+        raise HTTPException(status_code=400, detail="Invalid priority value. Must be 0 (low), 1 (medium), or 2 (high).")
+    
     new_task = models.Task(title=title, description=description, duration=duration, priority=priority, deadline=deadline, username="joe")
     db.add(new_task)
     db.commit()
