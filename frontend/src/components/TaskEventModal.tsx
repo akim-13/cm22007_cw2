@@ -1,5 +1,8 @@
 import React, { useState, useRef } from "react";
 import { Dialog, DialogTitle } from "@headlessui/react";
+import axios from "axios";
+
+const HOST="http://localhost:8000"
 
 interface TaskEventModalProps {
     isModalOpen: boolean;
@@ -45,7 +48,7 @@ const TaskEventModal: React.FC<TaskEventModalProps> = ({
     events, setEvents, 
     isModalOpen, setIsModalOpen, 
 }) => {
-    const newEvent = useRef<{ [key: string]: any }>({
+    const newFCEvent = useRef<{ [key: string]: any }>({
         extendedProps: {
             // EventExtras
             taskID: undefined,
@@ -70,19 +73,46 @@ const TaskEventModal: React.FC<TaskEventModalProps> = ({
         const isMainProp = name === "title" || name === "start" || name === "end"
 
         if (isMainProp) {
-            newEvent.current[name] = value;
+            newFCEvent.current[name] = value;
         } else {
-            newEvent.current.extendedProps = {
-                ...newEvent.current.extendedProps, 
+            newFCEvent.current.extendedProps = {
+                ...newFCEvent.current.extendedProps, 
                 [name]: value
             };
         }
     };
 
 
-    const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        setEvents([...events, { ...newEvent.current}]);
+        const currentFCEvent = newFCEvent.current
+
+        if (isTaskMode) {
+            const newTask = {
+                title: currentFCEvent.title,
+                deadline: currentFCEvent.start,
+                description: currentFCEvent.extendedProps.description,
+                duration: currentFCEvent.extendedProps.duration,
+                priority: currentFCEvent.extendedProps.priority
+            }            
+            try {
+                // FIXME: Bad request.
+                const response = await axios.post(`${HOST}/add_task`, { newTask });
+                alert("Event created successfully!");
+            } catch (error) {
+                console.error("Error creating event:", error);
+            }
+
+        } else {
+            const newEvent = {
+                standaloneEventName: currentFCEvent.title,
+                start: currentFCEvent.start,
+                end: currentFCEvent.end,
+                standaloneEventDescription: currentFCEvent.extendedProps.description
+            }
+        }
+
+        setEvents([...events, { ...newFCEvent.current}]);
         setIsModalOpen(false);
     };
 
@@ -92,7 +122,7 @@ const TaskEventModal: React.FC<TaskEventModalProps> = ({
         name="title"
         type="text"
         placeholder={isTaskMode ? "Task Title" : "Event Title"}
-        value={newEvent.title}
+        value={newFCEvent.title}
         onChange={handleInputChange}
         required
         className="border p-2 rounded w-full mt-2"
@@ -110,7 +140,7 @@ const TaskEventModal: React.FC<TaskEventModalProps> = ({
           e.target.value = formatDate(e.target.value);
         }}
         placeholder={isTaskMode ? "Deadline" : "Start Date"}
-        value={newEvent.start}
+        value={newFCEvent.start}
         onChange={handleInputChange}
         required
         className="border p-2 rounded w-full mt-2"
@@ -128,7 +158,7 @@ const TaskEventModal: React.FC<TaskEventModalProps> = ({
           e.target.value = formatDate(e.target.value);
         }}
         placeholder="End Date"
-        value={newEvent.end}
+        value={newFCEvent.end}
         onChange={handleInputChange}
         required
         className="border p-2 rounded w-full mt-2"
@@ -141,7 +171,7 @@ const TaskEventModal: React.FC<TaskEventModalProps> = ({
         name="duration"
         type="number"
         placeholder="Estimated Duration (Hours)"
-        value={newEvent.current.extendedProps.duration}
+        value={newFCEvent.current.extendedProps.duration}
         onChange={handleInputChange}
         className="border p-2 rounded w-full mt-2"
         required
@@ -152,7 +182,7 @@ const TaskEventModal: React.FC<TaskEventModalProps> = ({
     const PrioritySelect = () => (
       <select
         name="priority"
-        value={newEvent.current.extendedProps.priority}
+        value={newFCEvent.current.extendedProps.priority}
         onChange={handleInputChange}
         className="border p-2 rounded w-full mt-2"
       >
@@ -167,7 +197,7 @@ const TaskEventModal: React.FC<TaskEventModalProps> = ({
       <textarea
         name="description"
         placeholder="Description"
-        value={newEvent.current.extendedProps.description}
+        value={newFCEvent.current.extendedProps.description}
         onChange={handleInputChange}
         className="border p-2 rounded w-full mt-2"
       />
@@ -179,9 +209,9 @@ const TaskEventModal: React.FC<TaskEventModalProps> = ({
         <input
           name="isCompleted"
           type="checkbox"
-          checked={newEvent.isCompleted}
+          checked={newFCEvent.isCompleted}
           onChange={(e) =>
-            setNewEvent({ ...newEvent, isCompleted: e.target.checked })
+            setNewEvent({ ...newFCEvent, isCompleted: e.target.checked })
           }
           className="mr-2"
         />
