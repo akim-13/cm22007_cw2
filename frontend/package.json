@@ -16,6 +16,7 @@
     "@fullcalendar/react": "^6.1.15",
     "@fullcalendar/timegrid": "^6.1.15",
     "@headlessui/react": "^2.2.0",
+    "axios": "^1.8.2",
     "fullcalendar": "^6.1.15",
     "lucide-react": "^0.475.0",
     "react": "^19.0.0",
