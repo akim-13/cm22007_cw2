@@ -18,11 +18,6 @@ const Calendar: React.FC<any> = ({ events, setIsModalOpen }) => {
         alert('Settings panel will be shown here');
     }
 
-    // Add handler for create event button
-    const handleCreateEventClick = () => {
-        setIsModalOpen(true);
-    };
-
     return (
         <>
             <FullCalendar
@@ -30,12 +25,12 @@ const Calendar: React.FC<any> = ({ events, setIsModalOpen }) => {
                 initialView="timeGridWeek"
                 editable={true}
                 selectable={true}
-                height="95%"
+                height="90%"
                 timeZone="local"
                 headerToolbar={{
                     left: 'prev,next,today,title',
                     center: '',
-                    right: 'createEvent,achievements,settings'
+                    right: 'achievements,settings'
                 }}
                 titleFormat={
                     { month: 'short', day: 'numeric' ,year: "numeric"}
@@ -49,10 +44,6 @@ const Calendar: React.FC<any> = ({ events, setIsModalOpen }) => {
                         text: 'Settings',
                         click: handleSettingsClick
                     },
-                    createEvent: {
-                        text: 'Create Event',
-                        click: handleCreateEventClick
-                    }
                 }}
                 eventSources={[
                     {
@@ -84,8 +75,16 @@ const Calendar: React.FC<any> = ({ events, setIsModalOpen }) => {
                         hour: '2-digit',
                         minute: '2-digit'
                     }) : 'No end time';
+                    const extendedProps = info.event.extendedProps;
+                    let extendedPropsText = "";
 
-                    alert(`Event: ${info.event.title}\nStarts: ${startTime}\nEnds: ${endTime}`);
+                    if (extendedProps) {
+                        extendedPropsText = Object.entries(extendedProps)
+                            .map( ([key, value]) => `${key}: ${value}`)
+                            .join("\n");
+                    }
+
+                    alert(`Event: ${info.event.title}\nStarts: ${startTime}\nEnds: ${endTime}\n---\nExtended props:\n${extendedPropsText}`);
                 }}
                 views={{
                     timeGridWeek: {

@@ -41,12 +41,23 @@ const ModeToggleButton: React.FC<ModeToggleButtonProps> = ({ mode, isActive, set
   );
 };
 
-// TODO: Use the extra properties interface defined in App.tsx
 const TaskEventModal: React.FC<TaskEventModalProps> = ({ 
     events, setEvents, 
     isModalOpen, setIsModalOpen, 
 }) => {
-    const newEvent = useRef<{ [key: string]: any }>({});
+    const newEvent = useRef<{ [key: string]: any }>({
+        extendedProps: {
+            // EventExtras
+            taskID: undefined,
+            description: undefined,
+
+            // TaskExtras
+            isCompleted: undefined,
+            duration: undefined,
+            priority: undefined,
+            events: undefined,
+        }
+    });
     const [isTaskMode, setIsTaskMode] = useState(true);
 
     const handleInputChange = (
@@ -54,16 +65,24 @@ const TaskEventModal: React.FC<TaskEventModalProps> = ({
       React.ChangeEvent<HTMLSelectElement> |
       React.ChangeEvent<HTMLTextAreaElement>
     ) => {
-        // The spread operator {...x, y} copies the fields from the old object x to the new one y
-        // to ensure that changing one fieild doesn't delete the others. The [] syntax is for
-        // evaluating event.target.name and making the evaluated expression the key.
-        newEvent.current[event.target.name] = event.target.value;
+        const { name, value } = event.target;
+
+        const isMainProp = name === "title" || name === "start" || name === "end"
+
+        if (isMainProp) {
+            newEvent.current[name] = value;
+        } else {
+            newEvent.current.extendedProps = {
+                ...newEvent.current.extendedProps, 
+                [name]: value
+            };
+        }
     };
 
 
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        setEvents([...events, { ...newEvent.current, start: newEvent.current.start || new Date().toISOString() }]);
+        setEvents([...events, { ...newEvent.current}]);
         setIsModalOpen(false);
     };
 
@@ -122,9 +141,10 @@ const TaskEventModal: React.FC<TaskEventModalProps> = ({
         name="duration"
         type="number"
         placeholder="Estimated Duration (Hours)"
-        value={newEvent.duration}
+        value={newEvent.current.extendedProps.duration}
         onChange={handleInputChange}
         className="border p-2 rounded w-full mt-2"
+        required
       />
     );
 
@@ -132,7 +152,7 @@ const TaskEventModal: React.FC<TaskEventModalProps> = ({
     const PrioritySelect = () => (
       <select
         name="priority"
-        value={newEvent.priority}
+        value={newEvent.current.extendedProps.priority}
         onChange={handleInputChange}
         className="border p-2 rounded w-full mt-2"
       >
@@ -147,7 +167,7 @@ const TaskEventModal: React.FC<TaskEventModalProps> = ({
       <textarea
         name="description"
         placeholder="Description"
-        value={newEvent.description}
+        value={newEvent.current.extendedProps.description}
         onChange={handleInputChange}
         className="border p-2 rounded w-full mt-2"
       />
@@ -171,8 +191,8 @@ const TaskEventModal: React.FC<TaskEventModalProps> = ({
 
 
     return (
-      <Dialog open={isModalOpen} onClose={() => setIsModalOpen(false)} className="fixed inset-0 flex items-center justify-center">
-        <div className="bg-gray-200 p-6 rounded-lg shadow-lg w-[400px] min-h-[505px] flex flex-col">
+      <Dialog open={isModalOpen} onClose={() => setIsModalOpen(false)} className="fixed inset-0 flex z-[10000] items-center justify-center">
+        <div className="fixed bg-gray-200 p-6 rounded-lg shadow-lg w-[400px] min-h-[505px] flex flex-col">
 
           <DialogTitle className="text-lg font-bold text-black">
             {isTaskMode ? "Create Task" : "Create Event"}
@@ -213,7 +233,7 @@ const TaskEventModal: React.FC<TaskEventModalProps> = ({
             {/* Buttons */}
             <div className="mt-4 flex justify-end space-x-2">
               <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded">
-                {isTaskMode ? "Add Task" : "Add Event"}
+                {isTaskMode ? "Submit Task" : "Submit Event"}
               </button>
 
               <button type="button" onClick={() => setIsModalOpen(false)} className="bg-gray-500 text-white px-4 py-2 rounded">
