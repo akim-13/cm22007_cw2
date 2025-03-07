@@ -32,7 +32,7 @@ app.add_middleware(
 app.mount("/static", StaticFiles(directory="backend/static"), name="static")
 templates = Jinja2Templates(directory="backend/templates")
 
-ORM_Base.metadata.create_all(bind=engine)  # Create tables
+ORM_Base.metadata.create_all(bind=engine)  
 global_db = SessionLocal()
 
 
@@ -103,7 +103,7 @@ default_achievements = [
 
 def initialize_achievements():
     """Check if achievements exist and insert them if missing."""
-    if global_db.query(Achievements).count() == 0:  # Only add if table is empty
+    if global_db.query(Achievements).count() == 0:  
         for data in default_achievements:
             new_achievement = Achievements(**data)
             global_db.add(new_achievement)

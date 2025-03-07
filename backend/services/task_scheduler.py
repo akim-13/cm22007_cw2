@@ -24,8 +24,9 @@ An event has 3 keys: ['taskID', 'start', 'end']. Here are their descriptions:
 
 The user will also provide a calendar, as a list of events, so you can avoid conflicts and space out events effectively.
 
-IMPORTANT: the length of each of these events (end-start) should be appropriately chosen to prevent overloading students with work.
-EG: If the task is university coursework, aim to produce around 4 events a week that are roughly 2 hours in length."""
+IMPORTANT: the length of each of these events (end-start) should be appropriately chosen to prevent overloading students with work. You receive the duration of the
+task in minutes, so you can use this to help determine the length of each event. Task should be splited into equal length events or around equal. It's better to have
+several events for 30 minutes rather than 1 event longer. Sum of events length should be equal to the duration of the task. """
 
 
 def get_user_prompt(task: Task, calendar: dict):
