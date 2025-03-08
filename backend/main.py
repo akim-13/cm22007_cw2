@@ -224,7 +224,7 @@ def get_user_points(username: str):
 # a column for the points
 
 @app.get("/autofill/{username}")
-def autofill(request: Request, username: str, description: str, db: Session = Depends(yield_db)) -> generate_task_details.Task:
+def autofill(request: Request, username: str, description: str, db: Session = Depends(yield_db)) -> autofill.Task:
     details = autofill.gen(description, datetime.now())
     return details
 
