@@ -6,7 +6,7 @@ from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from database import models, SessionLocal, engine, ORM_Base, User
 from database.models import Achievements
-from services import achievements_service, tasks_service, task_scheduler, event_service, generate_task_details, standalone_event_service
+from services import achievements_service, tasks_service, task_scheduler, event_service, autofill, standalone_event_service
 # FastAPI stuff
 from fastapi import FastAPI, Depends, Request, Form, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -225,7 +225,7 @@ def get_user_points(username: str):
 
 @app.get("/autofill/{username}")
 def autofill(request: Request, username: str, description: str, db: Session = Depends(yield_db)) -> generate_task_details.Task:
-    details = generate_task_details.gen(description, datetime.now())
+    details = autofill.gen(description, datetime.now())
     return details
 
     
