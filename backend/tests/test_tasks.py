@@ -2,17 +2,17 @@ import pytest
 from datetime import datetime
 from sqlalchemy import create_engine
 import os, sys
+from database.models import Task, User, Event
+from services.task_scheduler import break_down_add_events
+from services.tasks_service import get_user_tasks, set_task_complete, set_task_incomplete
+
+from services.event_service import get_events_from_task
+
+from database.dbsetup import ORM_Base, SessionLocal
 
 sys.path.insert(
     0, os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 )
-
-from database.models import Task, User, Event
-from services.task_scheduler import break_down_add_events
-from services.tasks_service import get_user_tasks
-from services.event_service import get_events_from_task
-
-from database.dbsetup import ORM_Base, SessionLocal
 
 engine = create_engine("sqlite:///./test_task_scheduler.db", connect_args={"check_same_thread": False})
 
@@ -48,7 +48,8 @@ def test_task(db):
     # Check if user is in db, to see if db works
     users = db.query(User).filter(User.username == "test_user").all()
     assert len(users) == 1
-    assert users[0].username == "test_user"
+    user = users[0]
+    assert user.username == "test_user"
     
     # Add 2 tasks
     task1 = Task(title="Maths coursework", 
@@ -81,8 +82,14 @@ def test_task(db):
     assert events is not None
     assert len(events) == message["events_added"]
     
+    # Assign tasks to be complete, then check that the user points have increased
+    set_task_complete(task1.taskID, db)
+    set_task_complete(task2.taskID, db)
+    user = db.query(User).filter(User.username == "test_user").first()
+    assert user.currentPoints == task1.duration + task2.duration
     
-    
-    
-    
+    # Set task 2 to be incomplete and check points again
+    set_task_incomplete(task2.taskID, db)
+    user = db.query(User).filter(User.username == "test_user").first()
+    assert user.currentPoints == task1.duration
     

@@ -5,7 +5,7 @@ from config import default_achievements
 from sqlalchemy.orm import Session
 from database import models, SessionLocal, engine, ORM_Base, User
 from database.models import Achievements
-from services import achievements_service, tasks_service, task_scheduler, event_service, generate_task_details
+from services import achievements_service, tasks_service, task_scheduler, event_service, generate_task_details, user_service
 
 # FastAPI stuff
 from fastapi import FastAPI, Depends, Request, Form, status
@@ -51,6 +51,7 @@ def yield_db():
         yield db
     finally:
         db.close()
+    
         
 
 @app.get("/", name="home")
@@ -59,6 +60,7 @@ def home_page(request: Request, db: Session = Depends(yield_db)):
     
     return templates.TemplateResponse("home.html", {"request": request, "user_tasks": tasks})
 
+## ---------- TASK RELATED STUFF ----------
 
 @app.post("/add_task", response_class=HTMLResponse)
 def add(request: Request, title: str = Form(...), description: str = Form(...),duration: int = Form(...),priority: int = Form(...), deadline: datetime = Form(...), db: Session = Depends(yield_db)):
@@ -69,24 +71,20 @@ def add(request: Request, title: str = Form(...), description: str = Form(...),d
     url = app.url_path_for("home")
     return RedirectResponse(url=url, status_code=status.HTTP_303_SEE_OTHER)
 
-
 @app.delete("/delete_task/{taskID}", response_class=HTMLResponse)
 def delete_task(request: Request, taskID: int, db: Session = Depends(yield_db)):
     response = tasks_service.delete_task(taskID, db)
     return JSONResponse(status_code = 200, content = response)
-
 
 @app.put("/complete_task/{taskID}", response_class=JSONResponse)
 def complete_task(request: Request, taskID: int, db: Session = Depends(yield_db)):
     response = tasks_service.set_task_complete(taskID, db)
     return JSONResponse(status_code = 200, content = response)
 
-
 @app.put("/incomplete_task/{taskID}", response_class=JSONResponse)
 def incomplete_task(request: Request, taskID: int, db: Session = Depends(yield_db)):
     response = tasks_service.set_task_incomplete(taskID, db)
     return JSONResponse(status_code = 200, content = response)
-
 
 @app.put("/breakdown_task/{taskID}", response_class=JSONResponse)
 def breakdown_task(request: Request, taskID: int, db: Session = Depends(yield_db)):
@@ -94,29 +92,41 @@ def breakdown_task(request: Request, taskID: int, db: Session = Depends(yield_db
     return JSONResponse(status_code = 200, content = response)
 
 
+
+# ---------- EVENT RELATED STUFF ----------
+
 @app.get("/get_events_from_task/{taskID}", response_class=JSONResponse)
 def get_events_from_task(request: Request, taskID: int, db: Session = Depends(yield_db)):
     response = event_service.get_events_from_task(taskID, db)
     return JSONResponse(status_code = 200, content = response)
 
+@app.put("/edit_event/{eventID}", response_class=JSONResponse)
+def complete_task(request: Request, eventID: int, start: datetime, end: datetime, db: Session = Depends(yield_db)):
+    response = event_service.edit_event(eventID, start, end, db)
+    return JSONResponse(status_code = 200, content = response)
+
+
+
+# ---------- ACHIEVEMENTS RELATED STUFF ----------
 
 @app.get("/check_achievements")
 def check_achievements(db: Session = Depends(yield_db)):
     achievements = db.query(Achievements).all()
     return achievements
 
-
 @app.get("/get_achievements_from_user/{username}", response_class=JSONResponse)
 def get_achievements_from_user(request: Request, username: str, db: Session = Depends(yield_db)):
     response = achievements_service.get_from_user(username, db)
     return JSONResponse(status_code = 200, content = response)
 
-@app.get("/get_user_points/{username}")
-def get_user_points(username: str):
-    return {"username": username, "points": 120}
 
-# Isaac: For now, ive hard coded the amoount of points each user has but can someone create 
-# a column for the points
+
+# ---------- USER RELATED STUFF ----------
+
+@app.get("/get_user_points/{username}")
+def get_user_points(request: Request, username: str, db: Session):
+    response = user_service.get_user_points(username, db)
+    return JSONResponse(status_code = 200, content = response)
 
 @app.get("/autofill/{username}")
 def get_achievements_from_user(request: Request, username: str, description: str, db: Session = Depends(yield_db)) -> generate_task_details.Task:
@@ -127,15 +137,12 @@ def get_achievements_from_user(request: Request, username: str, description: str
    
 def run_app():
     import uvicorn
-        #Call it once to populate the achievements table
     initialize_achievements()
-
     user = global_db.query(User).filter(User.username == "joe").all()
-
     if not user:
         global_db.add(models.User(username="joe", hashedPassword="x", streakDays=0, currentPoints=0, stressLevel=0))
         global_db.commit()
-    
+
     uvicorn.run(app, access_log=True, log_level="debug")   
    
  
