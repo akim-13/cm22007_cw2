@@ -7,17 +7,15 @@ sys.path.insert(
 
 from config import DATABASE_URL
 from database import models, SessionLocal
-from services.achievements_service import update_from_user
+from services.achievements_service import get_from_user, update_from_user
 from database.dbsetup import ORM_Base, engine, SessionLocal
 
 
 @pytest.fixture(scope="session", autouse=True)
 def setup_database():
-    # Drop all existing tables, then recreate them
     ORM_Base.metadata.drop_all(bind=engine)
     ORM_Base.metadata.create_all(bind=engine)
     yield
-    # Optional: drop again after all tests
     ORM_Base.metadata.drop_all(bind=engine)
 
 
@@ -41,10 +39,8 @@ def test_achievements(db_session):
     db_session.add(test_user)
     db_session.commit()
 
-    # Check that the user starts with no achievements
     assert len(test_user.achievements) == 0
 
-    # Add an achievement requirement (e.g., 10 points)
     test_achievement = models.Achievements(
         title="Beginner", 
         requiredPoints=10,
@@ -54,12 +50,21 @@ def test_achievements(db_session):
     db_session.add(test_achievement)
     db_session.commit()
 
-    # Update user points and run function
     test_user.currentPoints = 15
     db_session.commit()
-    new_achievements = update_from_user(test_user.username, db_session)
 
-    # Check if achievement was unlocked
-    assert "Beginner" in new_achievements
-    assert len(test_user.achievements) == 1
+    update_from_user(test_user.username, db_session)
+
+    # Query Achievements actually tied to this user:
+    user_achievements = (
+        db_session.query(models.Achievements)
+        .join(models.Achievements_to_User,
+              models.Achievements_to_User.achievementID == models.Achievements.achievementID)
+        .filter(models.Achievements_to_User.username == test_user.username)
+        .all()
+    )
+
+    assert len(user_achievements) == 1
+    assert user_achievements[0].title == "Beginner"
+
     
