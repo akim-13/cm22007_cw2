@@ -24,8 +24,9 @@ An event has 3 keys: ['taskID', 'start', 'end']. Here are their descriptions:
 
 The user will also provide a calendar, as a list of events, so you can avoid conflicts and space out events effectively.
 
-IMPORTANT: the length of each of these events (end-start) should be appropriately chosen to prevent overloading students with work.
-EG: If the task is university coursework, aim to produce around 4 events a week that are roughly 2 hours in length."""
+IMPORTANT: the length of each of these events (end-start) should be appropriately chosen to prevent overloading students with work. You receive the duration of the
+task in minutes, so you can use this to help determine the length of each event. Task should be splited into equal length events or around equal. It's better to have
+several events for 30 minutes rather than 1 event longer. Sum of events length should be equal to the duration of the task. """
 
 
 def get_user_prompt(task: Task, calendar: dict):
@@ -39,18 +40,30 @@ This is my calendar (events only have start and end times to save space):
 
 
 def breakdown_task_LLM(user_prompt):
-    completion = client.chat.completions.create(
-        model="google/learnlm-1.5-pro-experimental:free",
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt}
-        ],
-        response_format={"type": "json_object"},
-    )
-    response = completion.choices[0].message.content
+    try:
+        completion = client.chat.completions.create(
+            model="google/learnlm-1.5-pro-experimental:free",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ],
+            response_format={"type": "json_object"},
+        )
+        if not completion or not completion.choices:
+                print("Error: API response is empty.")
+                return {}  
+            
+        response = completion.choices[0].message.content
 
-    return json.loads(response)
+        if response is None:
+                print("Error: API response message content is None.")
+                return {}  
 
+        return json.loads(response)
+
+    except Exception as e:
+        print("API Error:", str(e))
+        return {}  
 
 def break_down_add_events(username: str, taskID: int, db: Session) -> dict:
     task = db.query(Task).filter(Task.taskID == taskID).first()

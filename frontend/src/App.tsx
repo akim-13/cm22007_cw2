@@ -3,47 +3,24 @@ import Calendar from './components/Calendar';
 import TaskEventModal from "./components/TaskEventModal";
 import TaskCard from "./components/TaskCard";
 import InputPrompt from "./components/InputPrompt";
-
-// TODO: Check if this is needed.
 import './styles/fullcalendar.css';
-
-interface EventExtras {
-    // Commented out are the properties of FullCalendar's EventInput.
-    // title: string,
-    // start: string | Date,
-    // end?:  string | Date,
-    // id:    string,
-    taskID: string | null,
-}
-
-interface TaskExtras {
-    // title:     string,
-    // id:        strgin,
-    // start:     string,
-    description?: string,
-    isCompleted:  boolean,
-    duration:     number,
-    priority:     number,
-    events?:      Event[] | null
-}
 
 const App: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [events, setEvents] = useState<EventInput[]>([
-        { title: "testevent", start: new Date().toISOString() },
+        { title: "testevent", start: new Date().toISOString(), extendedProps: { priority: "1" } },
         { title: 'Task 1', start: '2025-02-25T10:00:00' },
         { title: 'Task 2', start: '2025-02-23T13:00:00' },
         { title: 'Task 3', start: '2025-02-23T09:00:00' },
     ]);
 
-    // FIXME: Doesn't work, the calendar is still re-rendered when modal is open.
     // Memoize events so they don't get a new reference unless updated
     const memoizedEvents = useMemo(() => events, [events]);
-
     return (
-        <div className="flex h-screen w-full">
+        <div className="flex h-screen w-full justify-center">
+
             {/* Task Card on the left */}
-            <div className="flex-none w-1/5 p-4 border-r border-gray-300">
+            <div className="flex-none w-[300px] p-4 border-r border-gray-300">
                 <TaskCard 
                     title="Develop API Endpoints" 
                     priority="high" 
@@ -56,23 +33,26 @@ const App: React.FC = () => {
             </div>
 
             {/* Main content on the right */}
-            <div className="flex-grow p-6">
+            <div className="flex-grow flex flex-col p-6">
                 {isModalOpen && (
                     <TaskEventModal
-                    events={memoizedEvents}
-                    setEvents={setEvents}
-                    isModalOpen={isModalOpen}
-                    setIsModalOpen={setIsModalOpen}
+                        events={memoizedEvents}
+                        setEvents={setEvents}
+                        isModalOpen={isModalOpen}
+                        setIsModalOpen={setIsModalOpen}
                     />
                 )}
+
                 <Calendar events={memoizedEvents} setIsModalOpen={setIsModalOpen} />
+
                 <div className="pt-4">
-                    <InputPrompt />
+                    <InputPrompt setIsModalOpen={setIsModalOpen}/>
                 </div>
                     
             </div>
         </div>
     );
+
 };
 
 export default App;

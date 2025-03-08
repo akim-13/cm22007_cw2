@@ -14,7 +14,6 @@ def get_user_task(username: str, db: Session) -> dict:
     return {"tasks": json_tasks}
     
 
-            
 def set_task_complete(task_id: int, db: Session) -> dict:
     task: Task = db.query(Task).filter(Task.taskID == task_id).first()
     
