@@ -5,7 +5,7 @@ import logging  # To debug -> Can't print, as the file isn't executed normally
 from sqlalchemy.orm import Session
 from database import models, SessionLocal, engine, ORM_Base, User
 from database.models import Achievements
-from services import achievements_service, tasks_service, task_scheduler, event_service, generate_task_details
+from services import achievements_service, tasks_service, task_scheduler, event_service, autofill
 
 # FastAPI stuff
 from fastapi import FastAPI, Depends, Request, Form, status
@@ -189,8 +189,8 @@ def get_achievements_from_user(request: Request, username: str, db: Session = De
     return JSONResponse(status_code = 200, content = response)
 
 @app.get("/autofill/{username}")
-def get_achievements_from_user(request: Request, username: str, description: str, db: Session = Depends(yield_db)) -> generate_task_details.Task:
-    details = generate_task_details.gen(description, datetime.now())
+def get_achievements_from_user(request: Request, username: str, description: str, db: Session = Depends(yield_db)) -> autofill.Task | autofill.Event:
+    details = autofill.gen(description, datetime.now())
     return details
 
     
