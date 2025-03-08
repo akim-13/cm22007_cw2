@@ -84,7 +84,7 @@ const Calendar: React.FC<any> = ({ events, setIsModalOpen }) => {
                             .join("\n");
                     }
 
-                    alert(`Event: ${info.event.title}\nStarts: ${startTime}\nEnds: ${endTime}\n---\nExtended props:\n${extendedPropsText}`);
+                    alert(`Event: ${info.event.title}\nID: ${info.event.id}\nStarts: ${startTime}\nEnds: ${endTime}\n---\nExtended props:\n${extendedPropsText}`);
                 }}
                 views={{
                     timeGridWeek: {

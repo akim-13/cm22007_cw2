@@ -1,5 +1,6 @@
 from database.models import Task, User
 from sqlalchemy.orm import Session
+from sqlalchemy import desc
 from services import achievements_service
 from tools import convertToJson
 
@@ -12,6 +13,15 @@ def get_user_task(username: str, db: Session) -> dict:
     tasks = db.query(Task).filter(User.username == username).all()
     json_tasks = [convertToJson(task) for task in tasks]
     return {"tasks": json_tasks}
+
+
+def get_latest_user_task(username: str, db: Session) -> dict:
+    latest_task = db.query(Task).filter(User.username == username).order_by(desc(Task.taskID)).first()
+
+    if latest_task:
+        return {"latest_task": convertToJson(latest_task)}
+    else:
+        return {"latest_task": None}
     
 
 def set_task_complete(task_id: int, db: Session) -> dict:

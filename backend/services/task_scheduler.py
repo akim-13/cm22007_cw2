@@ -33,7 +33,7 @@ def get_user_prompt(task: Task, calendar: dict):
     return \
     f"""This is my task:
 {convertToJson(task)}
-A priority of 1 is most important.
+A priority of 2 is most important.
 
 This is my calendar (events only have start and end times to save space):
 {calendar}"""
@@ -69,4 +69,5 @@ def break_down_add_events(username: str, taskID: int, db: Session) -> dict:
     db.bulk_save_objects(new_events)
     db.commit()
     
-    return {"events_added": len(new_events)}
+    return {"events_added": new_events}
+
