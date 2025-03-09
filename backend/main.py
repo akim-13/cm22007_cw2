@@ -71,6 +71,14 @@ def add(request: Request, title: str = Form(...), description: str = Form(...),d
     url = app.url_path_for("home")
     return RedirectResponse(url=url, status_code=status.HTTP_303_SEE_OTHER)
 
+@app.post("/edit_task", response_class=JSONResponse)
+def add(request: Request, taskID: int, task_properties: dict, db: Session = Depends(yield_db)):
+    response = tasks_service.edit_task(taskID,task_properties, db)
+    return JSONResponse(status_code = 200, content = response)
+    
+    url = app.url_path_for("home")
+    return RedirectResponse(url=url, status_code=status.HTTP_303_SEE_OTHER)
+
 @app.delete("/delete_task/{taskID}", response_class=HTMLResponse)
 def delete_task(request: Request, taskID: int, db: Session = Depends(yield_db)):
     response = tasks_service.delete_task(taskID, db)

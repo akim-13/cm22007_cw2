@@ -13,6 +13,19 @@ def get_user_tasks(username: str, db: Session) -> dict:
     json_tasks = [convertToJson(task) for task in tasks]
     return {"tasks": json_tasks}
     
+def edit_task(taskID: int, task_properties: dict, db: Session):
+    task = db.query(Task).filter(Task.taskID == taskID).first()
+    success = True
+
+    for attribute, value in task_properties.items():
+        if not hasattr(task, attribute):
+            success = False
+        else:
+            setattr(task, attribute, value)
+    
+    db.commit()
+            
+    return {"success": success}
 
             
 def set_task_complete(task_id: int, db: Session) -> dict:
