@@ -26,21 +26,9 @@ interface TaskEventModalProps {
 const TaskEventModal: React.FC<TaskEventModalProps> = ({ 
     events, setEvents, 
     isModalOpen, setIsModalOpen, 
+    newFCEvent, initialExtendedProps,
 }) => {
     const [isTaskMode, setIsTaskMode] = useState(true);
-    const newFCEvent = useRef<{ [key: string]: any }>({
-        extendedProps: {
-            username: "joe",
-            // EventExtras
-            taskID: undefined,
-            description: undefined,
-            // TaskExtras
-            priority: 0,
-            isCompleted: false,
-            duration: undefined,
-            events: undefined,
-        }
-    });
 
     const handleInputChange = (
       event: React.ChangeEvent<HTMLInputElement> |
@@ -117,6 +105,8 @@ const TaskEventModal: React.FC<TaskEventModalProps> = ({
             console.error("Something went wrong when adding a task or an event. No changes have been made.")
             return
         }
+
+        newFCEvent = { extendedProps: {...initialExtendedProps} }
 
         if (isTaskMode) {
             newFCEvent.current.extendedProps["username"] = taskOrEventData.latest_task.username

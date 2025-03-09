@@ -5,8 +5,19 @@ import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import AchievementModal from "./AchievementModal";
 
+const formatDate = (date: Date): string => {
+    return date.toLocaleString("en-US", {
+        month: "2-digit",
+        day: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+    });
+}
+
 // Add setIsModalOpen to the component props
-const Calendar: React.FC<any> = ({ events, setIsModalOpen }) => {
+const Calendar: React.FC<any> = ({ events, setIsModalOpen, newFCEvent, initialExtendedProps }) => {
     const [isAchievementModalOpen, setIsAchievementModalOpen] = useState(false);
 
     const handleAchievementsClick = () => {
@@ -84,7 +95,19 @@ const Calendar: React.FC<any> = ({ events, setIsModalOpen }) => {
                             .join("\n");
                     }
 
-                    alert(`Event: ${info.event.title}\nID: ${info.event.id}\nStarts: ${startTime}\nEnds: ${endTime}\n---\nExtended props:\n${extendedPropsText}`);
+                    // Reset the current event
+                    newFCEvent.current = { extendedProps: {...initialExtendedProps} }
+
+                    const currentEvent = info.event
+
+                    newFCEvent.current.title = formatDate(currentEvent?.title || "")
+                    newFCEvent.current.start = formatDate(currentEvent?.start || "")
+                    newFCEvent.current.end = formatDate(info.event?.end || "")
+                    newFCEvent.current.extendedProps.description = currentEvent?.extendedProps.description || ""
+
+                    setIsModalOpen(true)
+
+                    // alert(`Event: ${info.event.title}\nID: ${info.event.id}\nStarts: ${startTime}\nEnds: ${endTime}\n---\nExtended props:\n${extendedPropsText}`);
                 }}
                 views={{
                     timeGridWeek: {
