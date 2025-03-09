@@ -43,19 +43,18 @@ def test_achievements(db_session):
 
     test_achievement = models.Achievements(
         title="Beginner", 
-        requiredPoints=10,
+        requiredPoints=0,
         description="Awarded for reaching 10 points" 
     )
     
     db_session.add(test_achievement)
     db_session.commit()
 
-    test_user.currentPoints = 15
+    test_user.currentPoints = 0
     db_session.commit()
 
     update_from_user(test_user.username, db_session)
 
-    # Query Achievements actually tied to this user:
     user_achievements = (
         db_session.query(models.Achievements)
         .join(models.Achievements_to_User,

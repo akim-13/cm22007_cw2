@@ -28,4 +28,4 @@ def delete_user_standalone_event(standaloneEventID: int, db: Session) -> dict:
         db.commit()
         return {"standalone_event_deleted": True}
     else:
-        {"standalone_event_deleted": False} 
+        return {"standalone_event_deleted": False} 
