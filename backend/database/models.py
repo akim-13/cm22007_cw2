@@ -71,6 +71,8 @@ class Standalone_Event(ORM_Base):
     end = Column(DateTime, nullable=False)
     standaloneEventName = Column(String, nullable=False)
     standaloneEventDescription = Column(String, nullable=True)
+
+    eventBy = Column(String, nullable=True)
     
     username = Column(String, ForeignKey("User.username"), nullable=False)
     
