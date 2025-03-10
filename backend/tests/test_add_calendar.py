@@ -7,17 +7,17 @@ sys.path.insert(
 import pytest
 from unittest.mock import patch
 from fastapi.testclient import TestClient
-from main import app  # Ensure this correctly imports your FastAPI app
+from main import app  
 
 client = TestClient(app)
 
-# ✅ Test when 'ics_url' is missing from request
+# Test when 'ics_url' is missing from request
 def test_add_calendar_missing_url():
     response = client.post("/add_calendar/", json={})  # No 'ics_url' provided
     assert response.status_code == 200
     assert response.json() == {"Error": "No ics URL provided"}
 
-# ✅ Test successful calendar event addition with correct data format
+# Test successful calendar event addition with correct data format
 @patch("main.calendar_to_events.check_cal", return_value=[])
 @patch("main.calendar_to_events.get_event", return_value={
     "Valid link": [
@@ -30,7 +30,7 @@ def test_add_calendar_success(mock_db, mock_check_cal, mock_get_event):
     assert response.status_code == 200
     assert response.json() == "complete"
 
-# ✅ Test when 'ics_url' is provided but returns an error from get_event
+# Test when 'ics_url' is provided but returns an error from get_event
 @patch("main.calendar_to_events.check_cal", return_value=[])
 @patch("main.calendar_to_events.get_event", return_value={"Error": "Invalid ics format"})
 @patch("main.yield_db")  # Mock database dependency
@@ -39,7 +39,7 @@ def test_add_calendar_invalid_ics(mock_db, mock_check_cal, mock_get_event):
     assert response.status_code == 400
     assert response.json() == "Invalid ics format"
 
-# ✅ Test when 'ics_url' returns no events
+# Test when 'ics_url' returns no events
 @patch("main.calendar_to_events.check_cal", return_value=[])
 @patch("main.calendar_to_events.get_event", return_value={"Valid link": []})  # No events
 @patch("main.yield_db")  # Mock database dependency
@@ -48,7 +48,7 @@ def test_add_calendar_no_events(mock_db, mock_check_cal, mock_get_event):
     assert response.status_code == 200
     assert response.json() == "complete"
 
-# ✅ Test when calendar has existing events (to check deletion logic)
+# Test when calendar has existing events (to check deletion logic)
 @patch("main.calendar_to_events.check_cal", return_value=[1, 2, 3])  # Simulate existing events
 @patch("main.calendar_to_events.get_event", return_value={
     "Valid link": [
