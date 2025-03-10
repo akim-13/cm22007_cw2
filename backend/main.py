@@ -5,9 +5,12 @@ from config import default_achievements
 
 # DB stuff
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from database import models, SessionLocal, engine, ORM_Base, User
-from database.models import Achievements
+from database.models import Achievements, Standalone_Event
 from services import achievements_service, tasks_service, task_scheduler, event_service, autofill, standalone_event_service
+
+
 # FastAPI stuff
 from fastapi import FastAPI, Depends, Request, Form, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -15,7 +18,35 @@ from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-app = FastAPI()
+
+# Calendar stuff
+import calendar_to_events
+import repeat_weekly
+
+from contextlib import asynccontextmanager
+
+logger = logging.getLogger('uvicorn.error')
+logger.setLevel(logging.DEBUG)
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    repeated_values = (
+    global_db.query(Standalone_Event.eventBy, func.count(Standalone_Event.eventBy).label("num_repeated"))
+    .group_by(Standalone_Event.eventBy)
+    .having(func.count(Standalone_Event.eventBy) > 1).all()
+    )
+    
+    for i in enumerate(repeated_values):
+        repeated_values[i[0]] = list(i[1])
+
+    for i in repeated_values:
+        repeat_weekly.update(i[0], global_db)
+        
+    yield 
+
+    print("Synchronised")
+
+app = FastAPI(lifespan=lifespan)
 
 # Allow frontend (js) to communicate with backend with CORS (Cross-Origin Resource Sharing)
 # Middleware is a function that is passed through every request before it's passed through a path operation
@@ -27,8 +58,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.mount("/static", StaticFiles(directory="backend/static"), name="static")
-templates = Jinja2Templates(directory="backend/templates")
+app.mount("/static", StaticFiles(directory="static"), name="static")
+templates = Jinja2Templates(directory="templates")
 
 ORM_Base.metadata.create_all(bind=engine)  
 global_db = SessionLocal()
@@ -130,6 +161,7 @@ def get_events_from_task(request: Request, taskID: int, db: Session = Depends(yi
     response = event_service.get_events_from_task(taskID, db)
     return JSONResponse(status_code = 200, content = response)
 
+
 @app.put("/edit_event/{eventID}", response_class=JSONResponse)
 def complete_task(request: Request, eventID: int, start: datetime, end: datetime, db: Session = Depends(yield_db)):
     response = event_service.edit_event(eventID, start, end, db)
@@ -171,6 +203,48 @@ def get_achievements_from_user(request: Request, username: str, db: Session = De
     response = achievements_service.get_from_user(username, db)
     return JSONResponse(status_code = 200, content = response)
 
+
+
+@app.post("/add_calendar/", response_class=JSONResponse)
+def add_calendar(request: Request, data:dict, db: Session = Depends(yield_db)):
+
+    url = data.get("ics_url")
+    if not url:
+        return {"Error" : "No ics URL provided"}
+
+    #Add check function what events were created by the same link.
+    #this will delete all tasks linked to this link and re-sync
+
+    cal_events = db.query(Standalone_Event).filter(Standalone_Event.eventBy == url).delete()
+    db.commit()
+    
+    new_events = calendar_to_events.get_event(url)
+    
+    if "Valid link" in new_events:
+        new_events = new_events.get("Valid link")
+        for i in new_events:
+            new_event = Standalone_Event(start = i[1], end = i[2], standaloneEventName = i[0], standaloneEventDescription = i[3], eventBy = i[4], username = "joe")
+            db.add(new_event)
+        db.commit()
+
+        return JSONResponse(status_code=200, content="complete")
+    else:
+        return JSONResponse(status_code=400, content=new_events.get("Error"))
+
+@app.get("/manual_update")
+def manual_update(db: Session = Depends(yield_db)):
+    repeated_values = (
+    db.query(Standalone_Event.eventBy, func.count(Standalone_Event.eventBy).label("num_repeated"))
+    .group_by(Standalone_Event.eventBy)
+    .having(func.count(Standalone_Event.eventBy) > 1).all()
+    )
+
+    for i in enumerate(repeated_values):
+        repeated_values[i[0]] = list(i[1])
+
+    for i in repeated_values:
+        repeat_weekly.update(i[0], db)
+    return JSONResponse(status_code=200, content=repeated_values)
 
 
 # ---------- USER RELATED STUFF ----------
