@@ -1,19 +1,30 @@
 #database imports
-from database.models import Event, Standalone_Event, Task, User
+from database.models import Standalone_Event
 from sqlalchemy.orm import Session
 from datetime import datetime
-from tools import convertToJson
+
 #ics file imports
 from ics import Calendar
 import requests
-import arrow
 
-def get_event(link:str) -> list: 
-    
+def get_event(link:str) -> dict: 
     eventList = []
-    file = requests.get(link)
+
+    try:
+        file = requests.get(link)
+    except:
+        return {"Error":"Invalid link"}
+    
     if file.status_code == 200:
-        calendar = Calendar(file.text)
+        file_type = file.headers.get("Content-Type", "")
+
+        if "text/calendar" not in file_type and "application/octet-stream" not in file_type:
+            return {"Error":"Invalid file type"}
+
+        try:
+            calendar = Calendar(file.text)
+        except:
+            return {"Error":"Invalid ics format"}
 
         for event in calendar.events:
             start = (event.begin).datetime
@@ -22,12 +33,15 @@ def get_event(link:str) -> list:
             eventSingle = [event.name, start, end, event.description, link]
             eventList.append(eventSingle)
     
+        return {"Valid link":eventList}
     
-    return eventList
+    else:
+        return {"Error":"Invalid link"}
 
 
 def check_cal(cal_link:str, db:Session) -> dict:
     cal_events = db.query(Standalone_Event).filter(Standalone_Event.eventBy == cal_link).delete()
+    db.commit()
     return {"Number of rows" : cal_events}
             
 
