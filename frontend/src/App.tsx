@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef } from "react";
 import Calendar from './components/Calendar';
 import TaskEventModal from "./components/TaskEventModal";
 import TaskCard from "./components/TaskCard";
@@ -7,6 +7,19 @@ import './styles/fullcalendar.css';
 
 const App: React.FC = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const initialExtendedProps = {
+        username: "joe",
+        // EventExtras
+        taskID: undefined,
+        description: undefined,
+        // TaskExtras
+        priority: 0,
+        isCompleted: false,
+        duration: undefined,
+        events: undefined,
+    }
+
+    const newFCEvent = useRef<{ [key: string]: any }>({ extendedProps: {...initialExtendedProps} });
     const [events, setEvents] = useState<EventInput[]>([
         { title: "testevent", start: new Date().toISOString(), extendedProps: { priority: "1" } },
         { title: 'Task 1', start: '2025-02-25T10:00:00' },
@@ -40,13 +53,24 @@ const App: React.FC = () => {
                         setEvents={setEvents}
                         isModalOpen={isModalOpen}
                         setIsModalOpen={setIsModalOpen}
+                        newFCEvent={newFCEvent}
+                        initialExtendedProps={initialExtendedProps}
                     />
                 )}
 
-                <Calendar events={memoizedEvents} setIsModalOpen={setIsModalOpen} />
+                <Calendar 
+                    events={memoizedEvents} 
+                    setIsModalOpen={setIsModalOpen} 
+                    newFCEvent={newFCEvent}
+                    initialExtendedProps={initialExtendedProps}
+                />
 
                 <div className="pt-4">
-                    <InputPrompt setIsModalOpen={setIsModalOpen}/>
+                    <InputPrompt 
+                        setIsModalOpen={setIsModalOpen} 
+                        initialExtendedProps={initialExtendedProps}
+                        newFCEvent={newFCEvent} 
+                    />
                 </div>
                     
             </div>

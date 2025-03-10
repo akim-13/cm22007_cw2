@@ -1,64 +1,35 @@
 import React, { useState, useRef } from "react";
 import { Dialog, DialogTitle } from "@headlessui/react";
+import {
+  TitleInput,
+  StartDateInput,
+  EndDateInput,
+  DurationInput,
+  PrioritySelect,
+  DescriptionInput,
+  CompletedCheckbox,
+  ModeToggleButton,
+} from "./TaskEventInputs";
+import axios from "axios";
+
+const HOST="http://localhost:8000"
+
 
 interface TaskEventModalProps {
-    isModalOpen: boolean;
-    setIsModalOpen: (value: boolean) => void;
     events: InputEvent[];
     setEvents: (events: InputEvent[]) => void;
+    isModalOpen: boolean;
+    setIsModalOpen: (value: boolean) => void;
 }
 
-
-interface ModeToggleButtonProps {
-  mode: "task" | "event";
-  isActive: boolean;
-  setIsTaskMode: (value: boolean) => void;
-}
-
-
-const formatDate = (isoString: string): string => {
-  if (!isoString) return "";
-  const date = new Date(isoString);
-  return date.toLocaleString("en-US", { dateStyle: "short", timeStyle: "short" });
-};
-
-
-const ModeToggleButton: React.FC<ModeToggleButtonProps> = ({ mode, isActive, setIsTaskMode }) => {
-  return (
-    <label className="flex items-center cursor-pointer">
-      <input
-        name="mode"
-        type="radio"
-        value={mode}
-        checked={isActive}
-        onChange={() => setIsTaskMode(mode === "task")}
-        className="hidden"
-      />
-      <span className={`px-4 py-2 rounded ${isActive ? "bg-blue-500 text-white" : "bg-gray-300 text-black"}`}>
-        {mode === "task" ? "Task" : "Event"}
-      </span>
-    </label>
-  );
-};
 
 const TaskEventModal: React.FC<TaskEventModalProps> = ({ 
     events, setEvents, 
     isModalOpen, setIsModalOpen, 
+    newFCEvent, initialExtendedProps,
 }) => {
-    const newEvent = useRef<{ [key: string]: any }>({
-        extendedProps: {
-            // EventExtras
-            taskID: undefined,
-            description: undefined,
-
-            // TaskExtras
-            isCompleted: undefined,
-            duration: undefined,
-            priority: undefined,
-            events: undefined,
-        }
-    });
     const [isTaskMode, setIsTaskMode] = useState(true);
+    const [, forceUpdate] = useState(0); 
 
     const handleInputChange = (
       event: React.ChangeEvent<HTMLInputElement> |
@@ -70,132 +41,101 @@ const TaskEventModal: React.FC<TaskEventModalProps> = ({
         const isMainProp = name === "title" || name === "start" || name === "end"
 
         if (isMainProp) {
-            newEvent.current[name] = value;
+            newFCEvent.current[name] = value;
         } else {
-            newEvent.current.extendedProps = {
-                ...newEvent.current.extendedProps, 
+            newFCEvent.current.extendedProps = {
+                ...newFCEvent.current.extendedProps, 
                 [name]: value
             };
         }
+
+        forceUpdate(x => x+1);
     };
 
+    const getFormData = () => {
+        const currentFCEvent = newFCEvent.current;
+        const formData = new FormData();
 
-    const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+        if (isTaskMode) {
+            formData.append("title", currentFCEvent.title);
+            formData.append("deadline", currentFCEvent.start);
+            formData.append("description", currentFCEvent.extendedProps.description);
+            formData.append("duration", currentFCEvent.extendedProps.duration);
+            formData.append("priority", currentFCEvent.extendedProps.priority);
+        } else {
+            formData.append("start", currentFCEvent.start);
+            formData.append("end", currentFCEvent.end);
+            formData.append("standaloneEventName", currentFCEvent.title);
+            formData.append("standaloneEventDescription", currentFCEvent.extendedProps.description);
+        }
+
+        return formData;
+    }
+
+    const sendAddRequest = async (formData: formData) => {
+        try {
+            const addOperation = isTaskMode ? "add_task" : "add_standalone_event"
+            const response = await axios.post(`${HOST}/${addOperation}`, formData );
+            console.log(`Add request ${addOperation} sent successfully:`)
+            for (const pair of formData.entries()) { console.log(`${pair[0]}: ${pair[1]}`); }
+        } catch (error) {
+            console.error("Error performing ${operation}:", error);
+        }
+    }
+
+    const fetchTasksOrEventsData = async () => {
+        try {
+            const getOperation = isTaskMode ? "get_latest_user_task" : "get_latest_standalone_event"
+            const username = "joe"
+            const response = await axios.get(`${HOST}/${getOperation}/${username}`)
+            console.log(`Fetch request ${getOperation} successful:`)
+            console.log(response.data)
+            return response.data
+        } catch (error) {
+            console.error(`Error performing ${getOperation}:`, error);
+            return null
+        }
+    }
+
+    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        setEvents([...events, { ...newEvent.current}]);
+        // newFCEvent.current = { extendedProps: {...initialExtendedProps} }
+
+        const formData = getFormData();
+        await sendAddRequest(formData);
+        const taskOrEventData = await fetchTasksOrEventsData();
+
+        if (taskOrEventData === null) {
+            alert("Sorry, something went wrong.")
+            console.error("Something went wrong when adding a task or an event. No changes have been made.")
+            return
+        }
+
+        if (isTaskMode) {
+            newFCEvent.current.extendedProps["username"] = taskOrEventData.latest_task.username
+            newFCEvent.current["id"] = taskOrEventData.latest_task.taskID
+            try {
+                const response = await axios.get(`${HOST}/get_events_from_task/${newFCEvent.current["id"]}`)
+                // TODO: Process and add these events.
+                console.warn(response.data)
+            } catch (error) {
+                console.error(`Error retrieving events from task ID "${newFCEvent.current["id"]}"`, error)
+            }
+        } else {
+            newFCEvent.current.extendedProps["username"] = taskOrEventData.latest_standalone_event.username
+            newFCEvent.current["id"] = taskOrEventData.latest_standalone_event.standaloneEventID
+        }
+
+        setEvents([...events, {...newFCEvent.current}]);
         setIsModalOpen(false);
     };
-
-
-    const TitleInput = () => (
-      <input
-        name="title"
-        type="text"
-        placeholder={isTaskMode ? "Task Title" : "Event Title"}
-        value={newEvent.title}
-        onChange={handleInputChange}
-        required
-        className="border p-2 rounded w-full mt-2"
-      />
-    );
-
-
-    const StartDateInput = () => (
-      <input
-        name="start"
-        type="text"
-        onFocus={(e) => (e.target.type = "datetime-local")}
-        onBlur={(e) => {
-          e.target.type = "text";
-          e.target.value = formatDate(e.target.value);
-        }}
-        placeholder={isTaskMode ? "Deadline" : "Start Date"}
-        value={newEvent.start}
-        onChange={handleInputChange}
-        required
-        className="border p-2 rounded w-full mt-2"
-      />
-    );
-
-
-    const EndDateInput = () => (
-      <input
-        name="end"
-        type="text"
-        onFocus={(e) => (e.target.type = "datetime-local")}
-        onBlur={(e) => {
-          e.target.type = "text";
-          e.target.value = formatDate(e.target.value);
-        }}
-        placeholder="End Date"
-        value={newEvent.end}
-        onChange={handleInputChange}
-        required
-        className="border p-2 rounded w-full mt-2"
-      />
-    );
-
-
-    const DurationInput = () => (
-      <input
-        name="duration"
-        type="number"
-        placeholder="Estimated Duration (Hours)"
-        value={newEvent.current.extendedProps.duration}
-        onChange={handleInputChange}
-        className="border p-2 rounded w-full mt-2"
-        required
-      />
-    );
-
-
-    const PrioritySelect = () => (
-      <select
-        name="priority"
-        value={newEvent.current.extendedProps.priority}
-        onChange={handleInputChange}
-        className="border p-2 rounded w-full mt-2"
-      >
-        <option value="1">Low Priority</option>
-        <option value="2">Medium Priority</option>
-        <option value="3">High Priority</option>
-      </select>
-    );
-
-
-    const DescriptionInput = () => (
-      <textarea
-        name="description"
-        placeholder="Description"
-        value={newEvent.current.extendedProps.description}
-        onChange={handleInputChange}
-        className="border p-2 rounded w-full mt-2"
-      />
-    );
-
-
-    const CompletedCheckbox = () => (
-      <label className="flex items-center mt-2 text-black">
-        <input
-          name="isCompleted"
-          type="checkbox"
-          checked={newEvent.isCompleted}
-          onChange={(e) =>
-            setNewEvent({ ...newEvent, isCompleted: e.target.checked })
-          }
-          className="mr-2"
-        />
-        Mark as Completed
-      </label>
-    );
-
 
     return (
       <Dialog open={isModalOpen} onClose={() => setIsModalOpen(false)} className="fixed inset-0 flex z-[10000] items-center justify-center">
         <div className="fixed bg-gray-200 p-6 rounded-lg shadow-lg w-[400px] min-h-[505px] flex flex-col">
 
           <DialogTitle className="text-lg font-bold text-black">
-            {isTaskMode ? "Create Task" : "Create Event"}
+            {isTaskMode ? "Manage Task" : "Manage Event"}
           </DialogTitle>
 
           {/* Toggle Mode Buttons */}
@@ -208,24 +148,26 @@ const TaskEventModal: React.FC<TaskEventModalProps> = ({
           <form onSubmit={handleSubmit} className="mt-4 flex-1 flex flex-col justify-between">
 
             {/* Shared Fields */}
-            <TitleInput />
-            <StartDateInput />
+            <TitleInput value={newFCEvent.current.title} onChange={handleInputChange} isTaskMode={isTaskMode} />
+            <StartDateInput value={newFCEvent.current.start} onChange={handleInputChange} />
 
             {/* Specific Fields */}
             <div className="min-h-[150px]">
                 {isTaskMode ? (
                     <>
                         {/* Task-Specific Fields */}
-                        <DurationInput />
-                        <PrioritySelect />
-                        <DescriptionInput />
-                        <CompletedCheckbox />
+                        <DurationInput value={newFCEvent.current.extendedProps.duration} onChange={handleInputChange} />
+                        <PrioritySelect value={newFCEvent.current.extendedProps.priority} onChange={handleInputChange} />
+                        <DescriptionInput value={newFCEvent.current.extendedProps.description} onChange={handleInputChange} />
+                        <CompletedCheckbox checked={newFCEvent.current.extendedProps.isCompleted} onChange={handleInputChange} />
+           
                     </>
                 ) : (
                     <>
                         {/* Event-Specific Fields */}
-                        <EndDateInput />
-                        <DescriptionInput />
+                        <EndDateInput value={newFCEvent.current.end} onChange={handleInputChange} />
+                        <DescriptionInput value={newFCEvent.current.extendedProps.description} onChange={handleInputChange} />
+         
                     </>
                 )}
             </div>

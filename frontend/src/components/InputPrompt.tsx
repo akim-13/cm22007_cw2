@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Check, Plus } from "lucide-react";
 
-export default function InputPrompt({ setIsModalOpen }) {
+export default function InputPrompt({ setIsModalOpen, newFCEvent, initialExtendedProps }) {
   const [input, setInput] = useState("");
 
   const handleSubmit = () => {
@@ -10,6 +10,7 @@ export default function InputPrompt({ setIsModalOpen }) {
   };
 
     const handleCreateEventClick = () => {
+        newFCEvent.current = { extendedProps: { ...initialExtendedProps } };
         setIsModalOpen(true);
     };
 

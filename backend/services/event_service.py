@@ -1,5 +1,6 @@
 from database.models import Event, Standalone_Event, Task, User
 from sqlalchemy.orm import Session
+from sqlalchemy import desc
 from datetime import datetime
 from tools import convertToJson
 
@@ -30,6 +31,15 @@ def get_standalone_events(username: int, interval: tuple[datetime, datetime], db
         Standalone_Event.start > interval[1]).all()
 
     return {"standalone_events": [convertToJson(event) for event in events]}
+
+
+def get_latest_standalone_event(username: str, db: Session) -> dict:
+    latest_standalone_event = db.query(Standalone_Event).filter(User.username == username).order_by(desc(Standalone_Event.standaloneEventID)).first()
+
+    if latest_standalone_event:
+        return {"latest_standalone_event": convertToJson(latest_standalone_event)}
+    else:
+        return {"latest_standalone_event": None}
 
 
 def get_events_from_task(taskID: int, db: Session):
