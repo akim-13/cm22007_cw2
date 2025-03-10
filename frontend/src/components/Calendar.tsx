@@ -5,8 +5,19 @@ import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import AchievementModal from "./AchievementModal";
 
+const formatDate = (date: Date): string => {
+    return date.toLocaleString("en-US", {
+        month: "2-digit",
+        day: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+    });
+}
+
 // Add setIsModalOpen to the component props
-const Calendar: React.FC<any> = ({ events, setIsModalOpen }) => {
+const Calendar: React.FC<any> = ({ events, setIsModalOpen, newFCEvent, initialExtendedProps }) => {
     const [isAchievementModalOpen, setIsAchievementModalOpen] = useState(false);
 
     const handleAchievementsClick = () => {
@@ -17,11 +28,6 @@ const Calendar: React.FC<any> = ({ events, setIsModalOpen }) => {
         //Add your settings logic here
         alert('Settings panel will be shown here');
     }
-
-    // Add handler for create event button
-    const handleCreateEventClick = () => {
-        setIsModalOpen(true);
-    };
 
     return (
         <>
@@ -35,7 +41,7 @@ const Calendar: React.FC<any> = ({ events, setIsModalOpen }) => {
                 headerToolbar={{
                     left: 'prev,next,today,title',
                     center: '',
-                    right: 'createEvent,achievements,settings'
+                    right: 'achievements,settings'
                 }}
                 titleFormat={
                     { month: 'short', day: 'numeric' ,year: "numeric"}
@@ -49,10 +55,6 @@ const Calendar: React.FC<any> = ({ events, setIsModalOpen }) => {
                         text: 'Settings',
                         click: handleSettingsClick
                     },
-                    createEvent: {
-                        text: 'Create Event',
-                        click: handleCreateEventClick
-                    }
                 }}
                 eventSources={[
                     {
@@ -84,8 +86,31 @@ const Calendar: React.FC<any> = ({ events, setIsModalOpen }) => {
                         hour: '2-digit',
                         minute: '2-digit'
                     }) : 'No end time';
+                    const extendedProps = info.event.extendedProps;
+                    let extendedPropsText = "";
 
-                    alert(`Event: ${info.event.title}\nStarts: ${startTime}\nEnds: ${endTime}`);
+                    if (extendedProps) {
+                        extendedPropsText = Object.entries(extendedProps)
+                            .map( ([key, value]) => `${key}: ${value}`)
+                            .join("\n");
+                    }
+
+                    // Reset the current event
+                    newFCEvent.current = { extendedProps: {...initialExtendedProps} }
+
+                    const currentEvent = info.event
+
+                    newFCEvent.current.title = formatDate(currentEvent?.title || "")
+                    newFCEvent.current.start = formatDate(currentEvent?.start || "")
+                    newFCEvent.current.end = formatDate(info.event?.end || "")
+                    newFCEvent.current.extendedProps.duration = currentEvent?.extendedProps.duration || ""
+                    newFCEvent.current.extendedProps.priority = currentEvent?.extendedProps.priority || ""
+                    newFCEvent.current.extendedProps.description = currentEvent?.extendedProps.description || ""
+                    newFCEvent.current.extendedProps.isCompleted = currentEvent?.extendedProps.isCompleted || false
+
+                    setIsModalOpen(true)
+
+                    // alert(`Event: ${info.event.title}\nID: ${info.event.id}\nStarts: ${startTime}\nEnds: ${endTime}\n---\nExtended props:\n${extendedPropsText}`);
                 }}
                 views={{
                     timeGridWeek: {

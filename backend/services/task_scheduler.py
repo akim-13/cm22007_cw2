@@ -1,16 +1,16 @@
 import json
 
-from config import API_KEY, DATETIME_FORMAT
+from config import DATETIME_FORMAT
 from openai import OpenAI
 from datetime import datetime
 from database import Task, Event
 from sqlalchemy.orm import Session
 from tools import convertToJson
 from services.event_service import get_standalone_events, get_events
-        
+from dotenv import load_dotenv
 
-# Using the openrouter LLM interface API
-client = OpenAI(base_url="https://openrouter.ai/api/v1", api_key=API_KEY)
+load_dotenv()
+client = OpenAI()
 
 system_prompt = \
     f"""You are a calendar and task manager. Your job: break down tasks into events to be placed in a calendar. 
@@ -24,33 +24,46 @@ An event has 3 keys: ['taskID', 'start', 'end']. Here are their descriptions:
 
 The user will also provide a calendar, as a list of events, so you can avoid conflicts and space out events effectively.
 
-IMPORTANT: the length of each of these events (end-start) should be appropriately chosen to prevent overloading students with work.
-EG: If the task is university coursework, aim to produce around 4 events a week that are roughly 2 hours in length."""
+IMPORTANT: the length of each of these events (end-start) should be appropriately chosen to prevent overloading students with work. You receive the duration of the
+task in minutes, so you can use this to help determine the length of each event. Task should be splited into equal length events or around equal. It's better to have
+several events for 30 minutes rather than 1 event longer. Sum of events length should be equal to the duration of the task. """
 
 
 def get_user_prompt(task: Task, calendar: dict):
     return \
     f"""This is my task:
 {convertToJson(task)}
-A priority of 1 is most important.
+A priority of 2 is most important.
 
 This is my calendar (events only have start and end times to save space):
 {calendar}"""
 
 
 def breakdown_task_LLM(user_prompt):
-    completion = client.chat.completions.create(
-        model="google/learnlm-1.5-pro-experimental:free",
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt}
-        ],
-        response_format={"type": "json_object"},
-    )
-    response = completion.choices[0].message.content
+    try:
+        completion = client.chat.completions.create(
+            model="google/learnlm-1.5-pro-experimental:free",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ],
+            response_format={"type": "json_object"},
+        )
+        if not completion or not completion.choices:
+                print("Error: API response is empty.")
+                return {}  
+            
+        response = completion.choices[0].message.content
 
-    return json.loads(response)
+        if response is None:
+                print("Error: API response message content is None.")
+                return {}  
 
+        return json.loads(response)
+
+    except Exception as e:
+        print("API Error:", str(e))
+        return {}  
 
 def break_down_add_events(username: str, taskID: int, db: Session) -> dict:
     task = db.query(Task).filter(Task.taskID == taskID).first()
@@ -65,7 +78,10 @@ def break_down_add_events(username: str, taskID: int, db: Session) -> dict:
                         start=datetime.strptime(v["start"], DATETIME_FORMAT), 
                         end=datetime.strptime(v["end"], DATETIME_FORMAT)) for v in new_events_json]
     
-    db.bulk_save_objects(new_events)
+    for e in new_events:
+        db.merge(e)   # Merge will update the values if already set in the db instead of raising error
+        
     db.commit()
     
-    return {"events_added": len(new_events)}
+    return {"events_added": [convertToJson(event) for event in events]}
+
