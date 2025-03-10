@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 from database import models, SessionLocal, engine, ORM_Base, User
 from database.models import Achievements, Standalone_Event
-from services import achievements_service, tasks_service, task_scheduler, event_service, autofill, standalone_event_service
+from services import achievements_service, tasks_service, task_scheduler, event_service, user_service, autofill, standalone_event_service
 
 
 # FastAPI stuff

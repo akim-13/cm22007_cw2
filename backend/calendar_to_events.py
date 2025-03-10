@@ -38,10 +38,3 @@ def get_event(link:str) -> dict:
     else:
         return {"Error":"Invalid link"}
 
-
-def check_cal(cal_link:str, db:Session) -> dict:
-    cal_events = db.query(Standalone_Event).filter(Standalone_Event.eventBy == cal_link).delete()
-    db.commit()
-    return {"Number of rows" : cal_events}
-            
-
