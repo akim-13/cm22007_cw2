@@ -19,7 +19,7 @@ const App: React.FC = () => {
         events: undefined,
     }
 
-    const newFCEvent = useRef<{ [key: string]: any }>({ initialExtendedProps: {...initialExtendedProps} });
+    const newFCEvent = useRef<{ [key: string]: any }>({ extendedProps: {...initialExtendedProps} });
     const [events, setEvents] = useState<EventInput[]>([
         { title: "testevent", start: new Date().toISOString(), extendedProps: { priority: "1" } },
         { title: 'Task 1', start: '2025-02-25T10:00:00' },
@@ -66,7 +66,11 @@ const App: React.FC = () => {
                 />
 
                 <div className="pt-4">
-                    <InputPrompt setIsModalOpen={setIsModalOpen}/>
+                    <InputPrompt 
+                        setIsModalOpen={setIsModalOpen} 
+                        initialExtendedProps={initialExtendedProps}
+                        newFCEvent={newFCEvent} 
+                    />
                 </div>
                     
             </div>

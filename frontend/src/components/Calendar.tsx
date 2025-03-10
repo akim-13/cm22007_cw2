@@ -103,7 +103,10 @@ const Calendar: React.FC<any> = ({ events, setIsModalOpen, newFCEvent, initialEx
                     newFCEvent.current.title = formatDate(currentEvent?.title || "")
                     newFCEvent.current.start = formatDate(currentEvent?.start || "")
                     newFCEvent.current.end = formatDate(info.event?.end || "")
+                    newFCEvent.current.extendedProps.duration = currentEvent?.extendedProps.duration || ""
+                    newFCEvent.current.extendedProps.priority = currentEvent?.extendedProps.priority || ""
                     newFCEvent.current.extendedProps.description = currentEvent?.extendedProps.description || ""
+                    newFCEvent.current.extendedProps.isCompleted = currentEvent?.extendedProps.isCompleted || false
 
                     setIsModalOpen(true)
 

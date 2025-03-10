@@ -29,6 +29,7 @@ const TaskEventModal: React.FC<TaskEventModalProps> = ({
     newFCEvent, initialExtendedProps,
 }) => {
     const [isTaskMode, setIsTaskMode] = useState(true);
+    const [, forceUpdate] = useState(0); 
 
     const handleInputChange = (
       event: React.ChangeEvent<HTMLInputElement> |
@@ -47,6 +48,8 @@ const TaskEventModal: React.FC<TaskEventModalProps> = ({
                 [name]: value
             };
         }
+
+        forceUpdate(x => x+1);
     };
 
     const getFormData = () => {
@@ -96,6 +99,8 @@ const TaskEventModal: React.FC<TaskEventModalProps> = ({
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
+        // newFCEvent.current = { extendedProps: {...initialExtendedProps} }
+
         const formData = getFormData();
         await sendAddRequest(formData);
         const taskOrEventData = await fetchTasksOrEventsData();
@@ -105,8 +110,6 @@ const TaskEventModal: React.FC<TaskEventModalProps> = ({
             console.error("Something went wrong when adding a task or an event. No changes have been made.")
             return
         }
-
-        newFCEvent = { extendedProps: {...initialExtendedProps} }
 
         if (isTaskMode) {
             newFCEvent.current.extendedProps["username"] = taskOrEventData.latest_task.username
