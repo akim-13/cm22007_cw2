@@ -1,6 +1,7 @@
 from datetime import datetime
 import logging  # To debug -> Can't print, as the file isn't executed normally
 from fastapi import HTTPException
+from config import default_achievements
 
 # DB stuff
 from sqlalchemy.orm import Session
@@ -13,9 +14,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-
-logger = logging.getLogger('uvicorn.error')
-logger.setLevel(logging.DEBUG)
 
 app = FastAPI()
 
@@ -35,73 +33,6 @@ templates = Jinja2Templates(directory="backend/templates")
 ORM_Base.metadata.create_all(bind=engine)  
 global_db = SessionLocal()
 
-
-# List of default achievements
-default_achievements = [
-    {
-        "title": "Just Getting Started",
-        "requiredPoints": 10,
-        "description": "Completed the first 10 minutes of focused work.",
-        "image_path": "/images/achievements/start.png",
-
-    },
-    {
-        "title": "Half-Hour Hero",
-        "requiredPoints": 30,
-        "description": "Spent 30 minutes on a task. You're getting into the flow!",
-        "image_path": "/images/achievements/half_hour.png"
-    },
-    {
-        "title": "One-Hour Warrior",
-        "requiredPoints": 60,
-        "description": "Dedicated an hour to your task. Strong focus!",
-        "image_path": "/images/achievements/one_hour.png"
-    },
-    {
-        "title": "Time Master",
-        "requiredPoints": 120,
-        "description": "Worked for 2 hours in total. Your discipline is growing.",
-        "image_path": "/images/achievements/time_master.png"
-    },
-    {
-        "title": "Deep Focus Apprentice",
-        "requiredPoints": 300,
-        "description": "Spent 5 hours focused. Impressive commitment!",
-        "image_path": "/images/achievements/deep_focus.png"
-    },
-    {
-        "title": "Productivity Pro",
-        "requiredPoints": 600,
-        "description": "10 hours of total focus. You're a work machine!",
-        "image_path": "/images/achievements/productivity_pro.png"
-    },
-    {
-        "title": "Task Titan",
-        "requiredPoints": 1200,
-        "description": "20 hours spent on tasks. An unstoppable force!",
-        "image_path": "/images/achievements/task_titan.png"
-    },
-    {
-        "title": "Legend of Focus",
-        "requiredPoints": 2400,
-        "description": "40 hours of deep work. You’re in the hall of fame now!",
-        "image_path": "/images/achievements/legend_of_focus.png"
-    },
-    {
-        "title": "Master of Time",
-        "requiredPoints": 5000,
-        "description": "83+ hours in tasks. True dedication!",
-        "image_path": "/images/achievements/master_of_time.png"
-    },
-    {
-        "title": "God of Productivity",
-        "requiredPoints": 10000,
-        "description": "166+ hours. Beyond human limits!",
-        "image_path": "/images/achievements/god_of_productivity.png"
-    }
-]
-
-
 def initialize_achievements():
     """Check if achievements exist and insert them if missing."""
     if global_db.query(Achievements).count() == 0:  
@@ -112,14 +43,6 @@ def initialize_achievements():
     
     else:
         print("Achievements already exist, skipping population.")
-#Call it once to populate the achievements table
-initialize_achievements()
-
-user = global_db.query(User).filter(User.username == "joe").all()
-
-if not user:
-    global_db.add(models.User(username="joe", hashedPassword="x", streakDays=0, currentPoints=0, stressLevel=0))
-    global_db.commit()
 
 # This creates new user db session each request
 # A global db var introduces issues with multiple users accessing same db session
@@ -129,6 +52,7 @@ def yield_db():
         yield db
     finally:
         db.close()
+    
         
 
 @app.get("/", name="home")
@@ -137,6 +61,7 @@ def home_page(request: Request, db: Session = Depends(yield_db)):
     
     return templates.TemplateResponse("home.html", {"request": request, "user_tasks": tasks})
 
+## ---------- TASK RELATED STUFF ----------
 
 @app.post("/add_task", response_class=HTMLResponse)
 def add(request: Request, title: str = Form(...), description: str = Form(...), duration: int = Form(...),priority: int = Form(...), deadline: datetime = Form(...), db: Session = Depends(yield_db)):
@@ -151,24 +76,28 @@ def add(request: Request, title: str = Form(...), description: str = Form(...), 
     url = app.url_path_for("home")
     return RedirectResponse(url=url, status_code=status.HTTP_303_SEE_OTHER)
 
+@app.post("/edit_task", response_class=JSONResponse)
+def add(request: Request, taskID: int, task_properties: dict, db: Session = Depends(yield_db)):
+    response = tasks_service.edit_task(taskID,task_properties, db)
+    return JSONResponse(status_code = 200, content = response)
+    
+    url = app.url_path_for("home")
+    return RedirectResponse(url=url, status_code=status.HTTP_303_SEE_OTHER)
 
 @app.delete("/delete_task/{taskID}", response_class=HTMLResponse)
 def delete_task(request: Request, taskID: int, db: Session = Depends(yield_db)):
     response = tasks_service.delete_task(taskID, db)
     return JSONResponse(status_code = 200, content = response)
 
-
 @app.put("/complete_task/{taskID}", response_class=JSONResponse)
 def complete_task(request: Request, taskID: int, db: Session = Depends(yield_db)):
     response = tasks_service.set_task_complete(taskID, db)
     return JSONResponse(status_code = 200, content = response)
 
-
 @app.put("/incomplete_task/{taskID}", response_class=JSONResponse)
 def incomplete_task(request: Request, taskID: int, db: Session = Depends(yield_db)):
     response = tasks_service.set_task_incomplete(taskID, db)
     return JSONResponse(status_code = 200, content = response)
-
 
 @app.put("/breakdown_task/{taskID}", response_class=JSONResponse)
 def breakdown_task(request: Request, taskID: int, db: Session = Depends(yield_db)):
@@ -176,11 +105,22 @@ def breakdown_task(request: Request, taskID: int, db: Session = Depends(yield_db
     return JSONResponse(status_code = 200, content = response)
 
 
+
+# ---------- EVENT RELATED STUFF ----------
+
 @app.get("/get_events_from_task/{taskID}", response_class=JSONResponse)
 def get_events_from_task(request: Request, taskID: int, db: Session = Depends(yield_db)):
     response = event_service.get_events_from_task(taskID, db)
     return JSONResponse(status_code = 200, content = response)
 
+@app.put("/edit_event/{eventID}", response_class=JSONResponse)
+def complete_task(request: Request, eventID: int, start: datetime, end: datetime, db: Session = Depends(yield_db)):
+    response = event_service.edit_event(eventID, start, end, db)
+    return JSONResponse(status_code = 200, content = response)
+
+
+
+# ---------- ACHIEVEMENTS RELATED STUFF ----------
 
 @app.post("/add_standalone_event", response_class=HTMLResponse)
 def add_standalone_event(request: Request, standaloneEventName: str = Form(...), standaloneEventDescription: str = Form(...), start: datetime = Form(...), end: datetime = Form(...), db: Session = Depends(yield_db)):
@@ -209,26 +149,37 @@ def check_achievements(db: Session = Depends(yield_db)):
     achievements = db.query(Achievements).all()
     return achievements
 
-
 @app.get("/get_achievements_from_user/{username}", response_class=JSONResponse)
 def get_achievements_from_user(request: Request, username: str, db: Session = Depends(yield_db)):
     response = achievements_service.get_from_user(username, db)
     return JSONResponse(status_code = 200, content = response)
 
 
-@app.get("/get_user_points/{username}")
-def get_user_points(username: str):
-    return {"username": username, "points": 120}
 
-# Isaac: For now, ive hard coded the amoount of points each user has but can someone create 
-# a column for the points
+# ---------- USER RELATED STUFF ----------
+
+@app.get("/get_user_points/{username}")
+def get_user_points(request: Request, username: str, db: Session):
+    response = user_service.get_user_points(username, db)
+    return JSONResponse(status_code = 200, content = response)
 
 @app.get("/autofill/{username}")
 def autofill(request: Request, username: str, description: str, db: Session = Depends(yield_db)) -> autofill.Task:
     details = autofill.gen(description, datetime.now())
     return details
 
-    
-if __name__ == "__main__":
+   
+   
+def run_app():
     import uvicorn
-    uvicorn.run(app, access_log=True, log_level="debug")
+    initialize_achievements()
+    user = global_db.query(User).filter(User.username == "joe").all()
+    if not user:
+        global_db.add(models.User(username="joe", hashedPassword="x", streakDays=0, currentPoints=0, stressLevel=0))
+        global_db.commit()
+
+    uvicorn.run(app, access_log=True, log_level="debug")   
+   
+ 
+if __name__ == "__main__":
+    run_app()
