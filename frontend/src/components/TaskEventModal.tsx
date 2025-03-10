@@ -135,7 +135,7 @@ const TaskEventModal: React.FC<TaskEventModalProps> = ({
         <div className="fixed bg-gray-200 p-6 rounded-lg shadow-lg w-[400px] min-h-[505px] flex flex-col">
 
           <DialogTitle className="text-lg font-bold text-black">
-            {isTaskMode ? "Create Task" : "Create Event"}
+            {isTaskMode ? "Manage Task" : "Manage Event"}
           </DialogTitle>
 
           {/* Toggle Mode Buttons */}

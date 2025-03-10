@@ -14,7 +14,3 @@ ORM_Base = declarative_base()
 # Flush means reload
 # All sessions use the engine provided
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)  # This is known as a session factory 
-
-
-
-

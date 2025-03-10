@@ -40,18 +40,30 @@ This is my calendar (events only have start and end times to save space):
 
 
 def breakdown_task_LLM(user_prompt):
-    completion = client.beta.chat.completions.parse(
-        model="gpt-4o-2024-08-06",
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt}
-        ],
-        response_format={"type": "json_object"},
-    )
-    response = completion.choices[0].message.content
+    try:
+        completion = client.chat.completions.create(
+            model="google/learnlm-1.5-pro-experimental:free",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ],
+            response_format={"type": "json_object"},
+        )
+        if not completion or not completion.choices:
+                print("Error: API response is empty.")
+                return {}  
+            
+        response = completion.choices[0].message.content
 
-    return json.loads(response)
+        if response is None:
+                print("Error: API response message content is None.")
+                return {}  
 
+        return json.loads(response)
+
+    except Exception as e:
+        print("API Error:", str(e))
+        return {}  
 
 def break_down_add_events(username: str, taskID: int, db: Session) -> dict:
     task = db.query(Task).filter(Task.taskID == taskID).first()

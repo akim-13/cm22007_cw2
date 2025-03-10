@@ -14,6 +14,16 @@ def get_events(username: str, interval: tuple[datetime, datetime], db: Session) 
     return {"events": [convertToJson(event) for event in events]}
 
 
+def edit_event(eventID: int, new_start: datetime, new_end: datetime, db: Session):
+    event = db.query(Event).filter(Event.eventID == eventID).first()
+    event.start = new_start
+    event.end = new_end
+    db.commit()
+    
+    return {"success": True}
+    
+
+
 def get_standalone_events(username: int, interval: tuple[datetime, datetime], db: Session):
     events = db.query(Standalone_Event).filter(
         Standalone_Event.username == username, 
