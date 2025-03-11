@@ -89,12 +89,11 @@ def yield_db():
 @app.get("/", name="home")
 def home_page(request: Request, db: Session = Depends(yield_db)):
     tasks = tasks_service.get_user_task_obj("joe", db)
-    
     return templates.TemplateResponse("home.html", {"request": request, "user_tasks": tasks})
 
 @app.get("/get_user_tasks/{username}", response_class=JSONResponse)
-def get_tasks(request: Request, username: str, db: Session = Depends(yield_db)):
-    response = tasks_service.get_user_task(username, db)
+def get_user_tasks(request: Request, username: str, db: Session = Depends(yield_db)):
+    response = tasks_service.get_user_tasks(username, db)
     return JSONResponse(status_code = 200, content = response)
 
 

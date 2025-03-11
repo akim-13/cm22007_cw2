@@ -40,6 +40,7 @@ const Calendar: React.FC<any> = ({ events, setIsModalOpen, newFCEvent, initialEx
     const [isAchievementModalOpen, setIsAchievementModalOpen] = useState(false);
     const [backendEvents, setBackendEvents] = useState<StandaloneEvent[]>([]);
     const [taskEvents, setTaskEvents] = useState<TaskEvent[]>([]);
+    const username = "joe"; 
 
     useEffect(() => {
         fetchEvents();
@@ -48,7 +49,6 @@ const Calendar: React.FC<any> = ({ events, setIsModalOpen, newFCEvent, initialEx
 
     const fetchEvents = async () => {
         try {
-            const username = "joe"; // Change to dynamic username if needed
             const standaloneEventsResponse = await axios.get(
                 `http://localhost:8000/get_standalone_events/${username}`
             );
@@ -68,13 +68,12 @@ const Calendar: React.FC<any> = ({ events, setIsModalOpen, newFCEvent, initialEx
 
     const fetchTasks = async () => {
         try {
-            const taskResponse = await axios.get(
-                `http://localhost:8000`
-            );
+            const taskResponse = await axios.get(`http://localhost:8000/get_user_tasks/${username}`);
+            console.log("Tasks fetched from API:", taskResponse.data.tasks); 
             const tasks = taskResponse.data.tasks.map((task: any) => ({
-                id: task.taskID, 
+                id: task.taskID,
                 title: task.title,
-                start: task.deadline, 
+                start: new Date(task.deadline).toISOString(),
                 extendedProps: {
                     description: task.description,
                     priority: task.priority,
@@ -135,15 +134,15 @@ const Calendar: React.FC<any> = ({ events, setIsModalOpen, newFCEvent, initialEx
                 }}
                 eventSources={[
                     {
-                        url: "https://fullcalendar.io/api/demo-feeds/events.json",
-                        color: "rgb(59,130,246)",
-                        textColor: "white",
-                    },
-                    {
-                        events: [...events, ...backendEvents, ...taskEvents],
-                        color: "rgb(255,99,132)",
+                        events: [...taskEvents],
+                        color: "rgb(144,238,144)",
                         textColor: "black",
                     },
+                    {
+                        events: [ ...backendEvents],
+                        color: "rgb(255,99,132)",
+                        textColor: "black",
+                    }
                 ]}
                 eventClick={handleEventClick}
             />
