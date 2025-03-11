@@ -1,5 +1,4 @@
 #database imports
-from database.models import Standalone_Event
 from sqlalchemy.orm import Session
 from datetime import datetime
 
