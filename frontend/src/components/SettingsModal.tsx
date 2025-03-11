@@ -7,6 +7,9 @@ interface SettingsModalProps {
 
 export default function SettingsModal({ open, onClose }: SettingsModalProps) {
   const [calendarUrl, setCalendarUrl] = useState("");
+  const [theme, setTheme] = useState("light");
+  const [eventColor, setEventColour] = useState("#3b82f6");
+  const [taskColor, setTaskColour] = useState("#3b82f6");
 
   const handleConfirm = async () => {
     if (!calendarUrl) {
@@ -43,9 +46,9 @@ export default function SettingsModal({ open, onClose }: SettingsModalProps) {
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-[10000]">
       <div className="bg-white p-6 rounded-lg shadow-lg w-96">
         <h2 className="text-center text-lg font-semibold mb-4">Settings</h2>
-        <label className="block text-sm font-medium mb-2">
-          Enter calendar:
-        </label>
+
+        {/* Calendar URL Input */}
+        <label className="block text-sm font-medium mb-1">Calendar URL:</label>
         <input
           type="url"
           placeholder="https://..."
@@ -53,6 +56,37 @@ export default function SettingsModal({ open, onClose }: SettingsModalProps) {
           onChange={(e) => setCalendarUrl(e.target.value)}
           className="border rounded-md p-2 w-full mb-4"
         />
+
+        {/* Theme Selection */}
+        <label className="block text-sm font-medium mb-1">Theme:</label>
+        <select
+          value={theme}
+          onChange={(e) => setTheme(e.target.value)}
+          className="border rounded-md p-2 w-full mb-4"
+        >
+          <option value="light">Light</option>
+          <option value="dark">Dark</option>
+        </select>
+
+        {/* Event Color Picker */}
+        <label className="block text-sm font-medium mb-1">Event Colour:</label>
+        <input
+          type="color"
+          value={eventColor}
+          onChange={(e) => setEventColour(e.target.value)}
+          className="w-full h-10 mb-4 border rounded-md cursor-pointer"
+        />
+
+        {/* Task Color Picker */}
+        <label className="block text-sm font-medium mb-1">Task Colour:</label>
+        <input
+          type="color"
+          value={taskColor}
+          onChange={(e) => setTaskColour(e.target.value)}
+          className="w-full h-10 mb-4 border rounded-md cursor-pointer"
+        />
+
+        {/* Buttons */}
         <div className="flex justify-center space-x-2">
           <button
             onClick={handleConfirm}
