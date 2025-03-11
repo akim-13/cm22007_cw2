@@ -46,7 +46,7 @@ app = FastAPI(lifespan=lifespan)
 # Middleware is a function that is passed through every request before it's passed through a path operation
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # Update with frontend URL
+    allow_origins=["http://localhost:5174"],  # Update with frontend URL
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -75,9 +75,9 @@ def yield_db():
     finally:
         db.close()
 
-@app.get("/get_tasks/{username}", response_class=JSONResponse)
-def get_tasks(request: Request, username: str, db: Session = Depends(yield_db)):
-    response = tasks_service.get_user_task(username, db)
+@app.get("/get_user_tasks/{username}", response_class=JSONResponse)
+def get_user_tasks(request: Request, username: str, db: Session = Depends(yield_db)):
+    response = tasks_service.get_user_tasks(username, db)
     return JSONResponse(status_code = 200, content = response)
 
 

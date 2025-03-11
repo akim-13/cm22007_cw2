@@ -4,11 +4,15 @@ from sqlalchemy import desc
 from services import achievements_service
 from tools import convertToJson
 
-def get_user_tasks(username: str, db: Session) -> dict:
-    tasks = db.query(Task).filter(Task.username == username).all()
-    json_tasks = [convertToJson(task) for task in tasks]
-    return {"tasks": json_tasks}
 
+def get_user_tasks(username: str, db: Session) -> dict:
+    print(f"Fetching tasks for user: {username}")  # Debugging
+    tasks = db.query(Task).filter(Task.username == username).all()
+    
+    if not tasks:
+        return {"tasks": []}  
+
+    return {"tasks": [convertToJson(task) for task in tasks]}
 
 def get_latest_user_task(username: str, db: Session) -> dict:
     latest_task = db.query(Task).filter(User.username == username).order_by(desc(Task.taskID)).first()
