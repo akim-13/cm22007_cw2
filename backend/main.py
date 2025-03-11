@@ -1,5 +1,4 @@
 from datetime import datetime
-import logging  # To debug -> Can't print, as the file isn't executed normally
 from fastapi import HTTPException
 from config import default_achievements
 
@@ -12,11 +11,9 @@ from services import achievements_service, tasks_service, task_scheduler, event_
 
 
 # FastAPI stuff
-from fastapi import FastAPI, Depends, Request, Form, status
+from fastapi import FastAPI, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
+from fastapi.responses import JSONResponse
 
 
 # Calendar stuff
@@ -24,9 +21,6 @@ import calendar_to_events
 import repeat_weekly
 
 from contextlib import asynccontextmanager
-
-logger = logging.getLogger('uvicorn.error')
-logger.setLevel(logging.DEBUG)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -58,9 +52,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
-templates = Jinja2Templates(directory="templates")
-
 ORM_Base.metadata.create_all(bind=engine)  
 global_db = SessionLocal()
 
@@ -83,14 +74,6 @@ def yield_db():
         yield db
     finally:
         db.close()
-    
-        
-
-@app.get("/", name="home")
-def home_page(request: Request, db: Session = Depends(yield_db)):
-    tasks = tasks_service.get_user_task_obj("joe", db)
-    
-    return templates.TemplateResponse("home.html", {"request": request, "user_tasks": tasks})
 
 @app.get("/get_tasks/{username}", response_class=JSONResponse)
 def get_tasks(request: Request, username: str, db: Session = Depends(yield_db)):
@@ -111,28 +94,22 @@ def get_latest_standalone_event(request: Request, username: str, db: Session = D
 
 ## ---------- TASK RELATED STUFF ----------
 
-@app.post("/add_task", response_class=HTMLResponse)
-def add(request: Request, title: str = Form(...), description: str = Form(...), duration: int = Form(...),priority: int = Form(...), deadline: datetime = Form(...), db: Session = Depends(yield_db)):
-    
+@app.post("/add_task", response_class=JSONResponse)
+def add(request: Request, title: str, description: str, duration: int, priority: int, deadline: datetime, db: Session = Depends(yield_db)):
     if priority not in [0, 1, 2]:
         raise HTTPException(status_code=400, detail="Invalid priority value. Must be 0 (low), 1 (medium), or 2 (high).")
     
     new_task = models.Task(title=title, description=description, duration=duration, priority=priority, deadline=deadline, username="joe")
     db.add(new_task)
     db.commit()
-    
-    url = app.url_path_for("home")
-    return RedirectResponse(url=url, status_code=status.HTTP_303_SEE_OTHER)
+    return  JSONResponse(status_code = 200, content = {"success": True})
 
 @app.post("/edit_task", response_class=JSONResponse)
 def add(request: Request, taskID: int, task_properties: dict, db: Session = Depends(yield_db)):
     response = tasks_service.edit_task(taskID,task_properties, db)
     return JSONResponse(status_code = 200, content = response)
-    
-    url = app.url_path_for("home")
-    return RedirectResponse(url=url, status_code=status.HTTP_303_SEE_OTHER)
 
-@app.delete("/delete_task/{taskID}", response_class=HTMLResponse)
+@app.delete("/delete_task/{taskID}", response_class=JSONResponse)
 def delete_task(request: Request, taskID: int, db: Session = Depends(yield_db)):
     response = tasks_service.delete_task(taskID, db)
     return JSONResponse(status_code = 200, content = response)
@@ -171,17 +148,16 @@ def complete_task(request: Request, eventID: int, start: datetime, end: datetime
 
 # ---------- ACHIEVEMENTS RELATED STUFF ----------
 
-@app.post("/add_standalone_event", response_class=HTMLResponse)
-def add_standalone_event(request: Request, standaloneEventName: str = Form(...), standaloneEventDescription: str = Form(...), start: datetime = Form(...), end: datetime = Form(...), db: Session = Depends(yield_db)):
+@app.post("/add_standalone_event", response_class=JSONResponse)
+def add_standalone_event(request: Request, standaloneEventName: str, standaloneEventDescription: str, start: datetime, end: datetime, db: Session = Depends(yield_db)):
     new_standalone_event = models.Standalone_Event(standaloneEventName=standaloneEventName, standaloneEventDescription=standaloneEventDescription, start=start, end=end, username="joe")
     db.add(new_standalone_event)
     db.commit()
     
-    url = app.url_path_for("home")
-    return RedirectResponse(url=url, status_code=status.HTTP_303_SEE_OTHER)
+    return JSONResponse(status_code = 200, content = {"success": True})
 
 
-@app.delete("/delete_standalone_event/{standaloneEventID}", response_class=HTMLResponse)
+@app.delete("/delete_standalone_event/{standaloneEventID}", response_class=JSONResponse)
 def delete_standalone_event(request: Request, standaloneEventID: int, db: Session = Depends(yield_db)):
     response = standalone_event_service.delete_user_standalone_event(standaloneEventID, db)
     return JSONResponse(status_code = 200, content = response)
