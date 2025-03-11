@@ -22,12 +22,11 @@ def edit_event(eventID: int, new_start: datetime, new_end: datetime, db: Session
     return {"success": True}
     
 
-
 def get_standalone_events(username: int, interval: tuple[datetime, datetime], db: Session):
     events = db.query(Standalone_Event).filter(
         Standalone_Event.username == username, 
-        Standalone_Event.start < interval[0], 
-        Standalone_Event.start > interval[1]).all()
+        Standalone_Event.start > interval[0], 
+        Standalone_Event.start < interval[1]).all()
 
     return {"standalone_events": [convertToJson(event) for event in events]}
 
