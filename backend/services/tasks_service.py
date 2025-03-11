@@ -5,9 +5,6 @@ from services import achievements_service
 from tools import convertToJson
 
 
-def get_user_task_obj(username: str, db: Session) -> list[Task]:
-    return db.query(Task).filter(Task.username == username).all()
-
 def get_user_tasks(username: str, db: Session) -> dict:
     print(f"Fetching tasks for user: {username}")  # Debugging
     tasks = db.query(Task).filter(Task.username == username).all()
@@ -16,7 +13,6 @@ def get_user_tasks(username: str, db: Session) -> dict:
         return {"tasks": []}  
 
     return {"tasks": [convertToJson(task) for task in tasks]}
-
 
 def get_latest_user_task(username: str, db: Session) -> dict:
     latest_task = db.query(Task).filter(User.username == username).order_by(desc(Task.taskID)).first()
@@ -28,17 +24,18 @@ def get_latest_user_task(username: str, db: Session) -> dict:
     
 def edit_task(taskID: int, task_properties: dict, db: Session):
     task = db.query(Task).filter(Task.taskID == taskID).first()
-    success = True
 
     for attribute, value in task_properties.items():
-        if not hasattr(task, attribute):
-            success = False
-        else:
-            setattr(task, attribute, value)
+        if not hasattr(task, attribute) or attribute == "taskID":
+            return {"success": False}
+        if type(getattr(task, attribute)) != type(value):  # Checking consistency in data type being added
+            return {"success": False}
+        setattr(task, attribute, value)
     
+    db.merge(task)
     db.commit()
             
-    return {"success": success}
+    return {"success": True}
 
 def set_task_complete(task_id: int, db: Session) -> dict:
     task: Task = db.query(Task).filter(Task.taskID == task_id).first()
@@ -75,5 +72,5 @@ def delete_task(task_id: int, db: Session) -> dict:
         db.commit()
         return {"task_deleted": True}
     else:
-        {"task_deleted": False}
+        return {"task_deleted": False}
     

@@ -1,21 +1,22 @@
 import { useState } from "react";
 import { Check, Plus } from "lucide-react";
 
-export default function InputPrompt({ setIsModalOpen, newFCEvent, initialExtendedProps }) {
+export default function InputPrompt({
+  setIsModalOpen,
+  newFCEvent,
+  initialExtendedProps,
+}) {
   const [input, setInput] = useState("");
+  const [response, setResponse] = useState(null);
 
   const handleSubmit = () => {
+    alert(`Input: ${input}`); // Displays the input string
     console.log("Input submitted:", input);
     setInput(""); // Clear input after submission
   };
 
-    const handleCreateEventClick = () => {
-        newFCEvent.current = { extendedProps: { ...initialExtendedProps } };
-        setIsModalOpen(true);
-    };
-
   return (
-    <div className="flex items-center border-2 border-black rounded-3xl px-6 py-3 w-full">
+    <div className="flex items-center border-2 border-black rounded-3xl px-6 py-3 w-full max-w-2xl">
       <div className="relative flex-grow">
         <input
           type="text"
@@ -31,7 +32,7 @@ export default function InputPrompt({ setIsModalOpen, newFCEvent, initialExtende
           <Check className="w-6 h-6" />
         </button>
       </div>
-      <button onClick={handleCreateEventClick} className="ml-2 p-3 rounded-full hover:bg-gray-200">
+      <button className="ml-2 p-3 rounded-full hover:bg-gray-200">
         <Plus className="w-6 h-6" />
       </button>
     </div>
