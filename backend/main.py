@@ -52,7 +52,7 @@ app = FastAPI(lifespan=lifespan)
 # Middleware is a function that is passed through every request before it's passed through a path operation
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # Update with frontend URL
+    allow_origins=["http://localhost:5174"],  # Update with frontend URL
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
