@@ -92,7 +92,7 @@ def home_page(request: Request, db: Session = Depends(yield_db)):
     
     return templates.TemplateResponse("home.html", {"request": request, "user_tasks": tasks})
 
-@app.get("/get_tasks/{username}", response_class=JSONResponse)
+@app.get("/get_user_tasks/{username}", response_class=JSONResponse)
 def get_tasks(request: Request, username: str, db: Session = Depends(yield_db)):
     response = tasks_service.get_user_task(username, db)
     return JSONResponse(status_code = 200, content = response)

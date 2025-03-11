@@ -68,14 +68,13 @@ const Calendar: React.FC<any> = ({ events, setIsModalOpen, newFCEvent, initialEx
 
     const fetchTasks = async () => {
         try {
-            const username = "joe"; // Change to dynamic username if needed
             const taskResponse = await axios.get(
-                `http://localhost:8000/get_user_tasks/${username}`
+                `http://localhost:8000`
             );
             const tasks = taskResponse.data.tasks.map((task: any) => ({
-                eventID: task.taskID,
+                id: task.taskID, 
                 title: task.title,
-                start: task.deadline,
+                start: task.deadline, 
                 extendedProps: {
                     description: task.description,
                     priority: task.priority,
@@ -83,7 +82,7 @@ const Calendar: React.FC<any> = ({ events, setIsModalOpen, newFCEvent, initialEx
                     isCompleted: task.isCompleted,
                 },
             }));
-            setTaskEvents([...tasks]);
+            setTaskEvents(tasks);
         } catch (error) {
             console.error("Error fetching tasks:", error);
         }
