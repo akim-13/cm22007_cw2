@@ -22,7 +22,9 @@ def edit_task(taskID: int, task_properties: dict, db: Session):
     task = db.query(Task).filter(Task.taskID == taskID).first()
 
     for attribute, value in task_properties.items():
-        if not hasattr(task, attribute):
+        if not hasattr(task, attribute) or attribute == "taskID":
+            return {"success": False}
+        if type(getattr(task, attribute)) != type(value):  # Checking consistency in data type being added
             return {"success": False}
         setattr(task, attribute, value)
     

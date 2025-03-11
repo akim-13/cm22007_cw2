@@ -136,14 +136,14 @@ def test_task_scheduler(db_session):
     
     events = event_service.get_events_from_task(task1.taskID, db_session).get("events")
     assert events is not None
-    assert len(events) == message["events_added"]
+    assert len(events) == len(message["events_added"])
     
     # task1's description states I need to work at least 10 times, implying at least 10 events
-    assert message["events_added"] >= 10  
+    assert len(message["events_added"]) >= 10  
     
     # test whether the number of events added is the same as when we retrieve it from the task
     events = event_service.get_events_from_task(task1.taskID, db_session)["events"]
-    assert len(events) == message["events_added"]
+    assert len(events) == len(message["events_added"])
     
     # Check whether it handles tasks that haven't been broken down into events yet
     events = event_service.get_events_from_task(task2.taskID, db_session)["events"]
