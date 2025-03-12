@@ -7,6 +7,7 @@ import "./styles/fullcalendar.css";
 
 const App: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false); // added from input_prompt
 
   const initialExtendedProps = {
     username: "joe",
