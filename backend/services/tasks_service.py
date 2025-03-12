@@ -15,7 +15,7 @@ def get_user_tasks(username: str, db: Session) -> dict:
     return {"tasks": [convertToJson(task) for task in tasks]}
 
 def get_latest_user_task(username: str, db: Session) -> dict:
-    latest_task = db.query(Task).filter(User.username == username).order_by(desc(Task.taskID)).first()
+    latest_task = db.query(Task).filter(Task.username == username).order_by(desc(Task.taskID)).first()
 
     if latest_task:
         return {"latest_task": convertToJson(latest_task)}
