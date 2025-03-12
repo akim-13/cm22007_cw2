@@ -3,34 +3,18 @@ from openai import OpenAI
 from dotenv import load_dotenv
 from typing import Literal, Optional
 import datetime
-
-# The class \texttt{User} stores details including the password, in a hashed form, adhering to NFR 1.2, 1.3 and FR 8. It also contains many other objects, since most data is user-specific. To allow customisation as per FR 6.1 and NFR 2.5, \texttt{SettingsStorage} stores user preferences.
-
-# \texttt{GameState}, in addition to storing gamification data such as points earned (FR 4.1), contains an intensity level, which is adjusted by \texttt{StressTracker} to reduce stress, e.g. by disabling certain features such as streaks, satisfying FR 10.1. For FR 10.2, \texttt{StressTracker} sends notifications suggesting breaks/wellness activities.
-
-# \texttt{Task} and \texttt{Event} are separate, as tasks are to-do items with an associated deadline, whereas events are calendar items with a time slot. Each \texttt{Event} may have an associated \texttt{Task}. As a \texttt{Task} can be completed in multiple sessions, a \texttt{Task} could have multiple associated \texttt{Event}s. However, some \texttt{Event}s, such as those added manually or imported from MyTimetable, may not have an associated task.
-
-# \texttt{Task} is able to schedule related events (FR 2.3). \texttt{Event} keeps track of the creation source (auto-created from a task, synced from an external source, or added manually) to simplify rescheduling/updating events.
-
-# Tasks are stored in a \texttt{TodoList} (FR 6.3), and events are stored in a \texttt{Calendar} (FR 6.2), both part of a \texttt{User} object.
-
-# \texttt{Calendar} can contain classes implementing \texttt{EventSyncSource}, representing an external event source, such as an iCalendar \cite{rfc5545} data source (e.g. MyTimetable), so \texttt{Calendar} can periodically update external events, as per FR 1.1, FR 1.2 and FR 1.3.
-
-# Multiple notification delivery methods will be implemented during development as part of FR 5.1. Therefore, \texttt{NotificationProvider} represents any service that can be used to send notifications, such as \texttt{DiscordProvider} (FR 5.2) and \texttt{EmailProvider} (FR 5.3). Various parts of the system can also use this functionality, such as the stress tracker (FR 10.2) and the calendar.
-
-# Getter/setters on data storage classes automatically update the database, ensuring that all details are stored and up to date, satisfying FR 9.1 and 9.2. 
+from joblib import Memory
 
 load_dotenv()
 
 client = OpenAI()
-
 
 class TaskModelOutput(BaseModel):
     type: Literal["Task"]
     title: str
     description: str
     deadline: str
-    durationMinutes: int
+    durationMinutes: str
 
 class EventModelOutput(BaseModel):
     type: Literal["Event"]
@@ -40,6 +24,7 @@ class EventModelOutput(BaseModel):
     end: str
 
 class ModelOutput(BaseModel):
+    reasoning: str
     taskOrEvent: TaskModelOutput | EventModelOutput
 
 class Task(BaseModel):
@@ -58,6 +43,8 @@ class Event(BaseModel):
 
 def validateString(string: str) -> Optional[str]:
     if string == "None":
+        return None
+    if len(string) == 0:
         return None
     return string
 
@@ -79,10 +66,12 @@ def validateDatetime(string: str) -> Optional[datetime.datetime]:
     except ValueError:
         return None
 
-def gen(description: str, currentDate: datetime.datetime) -> Task | Event:
-    iso = currentDate.isoformat().split(".")[0]
-    local = currentDate.strftime("%Y-%m-%d at %H:%M:%S on %A")
-
+# Usually won't do anything because the dates change
+# However it can be useful when running tests
+# If this code is changed then this will automatically invalidate the cache
+memory = Memory("cache")
+@memory.cache
+def runModel(description, iso, local, weekdayHelper):
     completion = client.beta.chat.completions.parse(
         model="gpt-4o-mini",
         messages=[
@@ -100,8 +89,10 @@ def gen(description: str, currentDate: datetime.datetime) -> Task | Event:
                 "For tasks, the fields are:\n"
                 "Title should be a short description, ideally no more than 40 characters, that should be recognisable to remind the user which task is being shown on the calendar.\n"
                 "Description is longer and should include the details the user gave that are not stored in other fields.\n"
-                "Deadline is the date and time the task is due, in the format YYYY-MM-DDTHH:MM:SS.\n"
-                "DurationMinutes is the estimated time to complete the task in minutes.\n\n"
+                "Deadline is the date and time the task is due, in the format YYYY-MM-DDTHH:MM:SS. If it's due by a certain day but without a known time, use 23:59 on the previous day. Of course, if the time is known (e.g. 3pm), use that, on the same day given.\n"
+                "e.g. a deadline of 3rd Jan 2024 would ourput 2024-01-03T00:00:00, 8PM on the 5th Jan 2024 would output 2024-01-05T20:00:00.\n"
+                "DurationMinutes is the estimated time to complete the task in minutes. This is the time taken to actually do the thing specified in the task, for example a submission may take only 5-10 minutes, but revision may take a few hours.\n"
+                "For a submission task (submit homework by tomorrow) we assume this refers to the actual act of submitting so go for the lower end of the range.\n\n"
 
                 "For events, the fields are:\n"
                 "Title (as above)\n"
@@ -109,9 +100,14 @@ def gen(description: str, currentDate: datetime.datetime) -> Task | Event:
                 "Start is the date and time the event starts, in the format YYYY-MM-DDTHH:MM:SS.\n"
                 "End is the date and time the event ends, in the format YYYY-MM-DDTHH:MM:SS.\n"
                 "Usually, start and end will be close together.\n\n"
+
+                "All fields can take the value None if needed. This includes numeric ones (duration). Only do this if any other output is very unlikely to be useful to the user even as a rough guess. If the input is too malformed/vague to pick Task or Event, default to Task, with fields as None if appropriate. Prefer None to something completely generic or empty.\n\n"
+
+                "Reason about the duration and deadline (including the reason for the specific date of the month) in the provided field before outputting it; think about how long it may take and when it is due. Keep this to a few sentences max.\n\n"
                 
                 f"Local time: {local}\n"
-                f"ISO time: {iso}"},
+                f"ISO time: {iso}"
+                f"Weekday helper: {weekdayHelper}"},
             # {"role": "user", "content": "Previous tasks for context:\n[Task 1]\nTitle:Finish Visual Computing code\nDescription:The code for visual computing needs to finished and uploaded for all team members to see before we start on the report,\nDeadline:2025-02-27T23:59:00\nDurationMinutes:480"},
             {"role": "user", "content": "User input:" + description},
         ],
@@ -119,7 +115,23 @@ def gen(description: str, currentDate: datetime.datetime) -> Task | Event:
         temperature=0.0
     )
 
-    out = completion.choices[0].message.parsed
+    return completion.choices[0].message.parsed
+
+def gen(description: str, currentDate: datetime.datetime) -> Task | Event:
+    iso = currentDate.isoformat().split(".")[0]
+    local = currentDate.strftime("%Y-%m-%d at %H:%M:%S on %A")
+
+    # Help the AI get the weekdays right
+    weekdayHelper = ""
+    fmtOrdinal = lambda x : str(x) + ("th" if 11 <= x <= 13 else {1: "st", 2: "nd", 3: "rd"}.get(x % 10, "th"))
+    for i in range(1, 8):
+        newDate = currentDate + datetime.timedelta(days=i)
+        weekdayHelper += f"{fmtOrdinal(newDate.day)} is {newDate.strftime('%A')}, "
+    weekdayHelper = weekdayHelper[:-2]
+
+    print(weekdayHelper)
+    out = runModel(description, iso, local, weekdayHelper)
+    print(out)
 
     if out.taskOrEvent.type == "Event":
         event_out = out.taskOrEvent
