@@ -236,12 +236,12 @@ def autofill(request: Request, username: str, description: str, db: Session = De
     return details
 
 @app.get("/authenticate_user/")
-def authenticate_user(request: Request, username: str, password: str, db: Session = Depends(yield_db)) -> autofill.Task:
+def authenticate_user(request: Request, username: str, password: str, db: Session = Depends(yield_db)):
     response = user_service.authenticate_user(username, password, db)
     return JSONResponse(status_code = 200, content = response)
 
 @app.get("/create_user/")
-def create_user(request: Request, username: str, password: str, db: Session = Depends(yield_db)) -> autofill.Task:
+def create_user(request: Request, username: str, password: str, db: Session = Depends(yield_db)):
     response = user_service.create_user(username, password, db)
     return JSONResponse(status_code = 200, content = response)
 
