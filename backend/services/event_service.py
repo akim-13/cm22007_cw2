@@ -44,3 +44,11 @@ def get_latest_standalone_event(username: str, db: Session) -> dict:
 def get_events_from_task(taskID: int, db: Session):
     events = db.query(Task).filter(Task.taskID == taskID).first().events
     return {"events": [convertToJson(event) for event in events]}    
+
+
+def delete_events_from_task(taskID: int, db: Session):
+    events = db.query(Event).filter(Event.taskID == taskID)
+    events.delete()
+    db.commit()
+    
+    return {"success": True}

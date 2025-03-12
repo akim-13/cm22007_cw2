@@ -6,7 +6,7 @@ from datetime import datetime
 from database import Task, Event
 from sqlalchemy.orm import Session
 from tools import convertToJson
-from services.event_service import get_standalone_events, get_events
+from services.event_service import get_standalone_events, get_events, delete_events_from_task
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -42,7 +42,7 @@ This is my calendar (events only have start and end times to save space):
 def breakdown_task_LLM(user_prompt):
     try:
         completion = client.chat.completions.create(
-            model="google/learnlm-1.5-pro-experimental:free",
+            model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
@@ -59,29 +59,34 @@ def breakdown_task_LLM(user_prompt):
                 print("Error: API response message content is None.")
                 return {}  
 
-        return json.loads(response)
+        return json.loads(response)["events"]
 
     except Exception as e:
         print("API Error:", str(e))
         return {}  
+    
 
 def break_down_add_events(username: str, taskID: int, db: Session) -> dict:
     task = db.query(Task).filter(Task.taskID == taskID).first()
     events = get_events(username, (datetime.now(), task.deadline), db)["events"]
+    
+    if task.events != []:
+        delete_events_from_task(taskID, db)  # Delete all the events that are prexisting
+    
     standalone_events = get_standalone_events(username, (datetime.now(), task.deadline), db)["standalone_events"]
     
     calendar = [{"start": event["start"], "end": event["end"]} for event in events]
     calendar.extend([{"start": s_event["start"], "end": s_event["end"]} for s_event in standalone_events])
     new_events_json = breakdown_task_LLM(get_user_prompt(task, calendar))
     
+    print("EVENTS: ", new_events_json)
+    
     new_events = [Event(taskID=v["taskID"], 
                         start=datetime.strptime(v["start"], DATETIME_FORMAT), 
                         end=datetime.strptime(v["end"], DATETIME_FORMAT)) for v in new_events_json]
     
-    for e in new_events:
-        db.merge(e)   # Merge will update the values if already set in the db instead of raising error
-        
+    db.bulk_save_objects(new_events)    
     db.commit()
     
-    return {"events_added": [convertToJson(event) for event in events]}
+    return {"events_added": new_events_json}
 
