@@ -1,16 +1,16 @@
 import json
 
-from config import API_KEY, DATETIME_FORMAT
+from config import DATETIME_FORMAT
 from openai import OpenAI
 from datetime import datetime
 from database import Task, Event
 from sqlalchemy.orm import Session
 from tools import convertToJson
 from services.event_service import get_standalone_events, get_events
-        
+from dotenv import load_dotenv
 
-# Using the openrouter LLM interface API
-client = OpenAI(base_url="https://openrouter.ai/api/v1", api_key=API_KEY)
+load_dotenv()
+client = OpenAI()
 
 system_prompt = \
     f"""You are a calendar and task manager. Your job: break down tasks into events to be placed in a calendar. 
@@ -33,7 +33,7 @@ def get_user_prompt(task: Task, calendar: dict):
     return \
     f"""This is my task:
 {convertToJson(task)}
-A priority of 1 is most important.
+A priority of 2 is most important.
 
 This is my calendar (events only have start and end times to save space):
 {calendar}"""
@@ -78,7 +78,10 @@ def break_down_add_events(username: str, taskID: int, db: Session) -> dict:
                         start=datetime.strptime(v["start"], DATETIME_FORMAT), 
                         end=datetime.strptime(v["end"], DATETIME_FORMAT)) for v in new_events_json]
     
-    db.bulk_save_objects(new_events)
+    for e in new_events:
+        db.merge(e)   # Merge will update the values if already set in the db instead of raising error
+        
     db.commit()
     
-    return {"events_added": len(new_events)}
+    return {"events_added": [convertToJson(event) for event in events]}
+

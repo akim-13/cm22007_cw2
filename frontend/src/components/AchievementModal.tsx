@@ -25,6 +25,40 @@ const AchievementModal: React.FC<AchievementModalProps> = ({
   const [filter, setFilter] = useState<"all" | "completed" | "locked">("all");
   const [loading, setLoading] = useState(true);
 
+  // Detect dark mode using window.matchMedia
+  const isDarkMode = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+  // Define dynamic styles based on dark mode
+  const modalContainerStyle = {
+    backgroundColor: isDarkMode ? "#333" : "white",
+    padding: "20px",
+    borderRadius: "10px",
+    width: "100%",
+    maxWidth: "500px",
+    maxHeight: "80vh",
+    overflow: "auto",
+    color: isDarkMode ? "#fff" : "#000"
+  };
+
+  const cardStyle = (completed: boolean) => ({
+    border: "1px solid #ccc",
+    borderRadius: "10px",
+    padding: "12px",
+    marginBottom: "10px",
+    backgroundColor: completed ? (isDarkMode ? "#444" : "#f8f8f8") : (isDarkMode ? "#555" : "#f0f0f0"),
+    display: "flex",
+    alignItems: "center"
+  });
+
+  const buttonStyle = (active: boolean) => ({
+    marginRight: "10px",
+    padding: "5px 10px",
+    background: active ? (isDarkMode ? "#555" : "#ddd") : (isDarkMode ? "#444" : "#f0f0f0"),
+    border: "1px solid #ccc",
+    borderRadius: "8px",
+    cursor: "pointer"
+  });
+
   useEffect(() => {
     if (isOpen) {
       const fetchData = async () => {
@@ -46,7 +80,7 @@ const AchievementModal: React.FC<AchievementModalProps> = ({
   
   const fetchUserPoints = async () => {
     try {
-      console.log("Fetching points for user:", username); 
+      console.log("Fetching points for user:", username);
       const response = await axios.get(`http://localhost:8000/get_user_points/${username}`);
       setUserPoints(response.data.points);
     } catch (error) {
@@ -100,15 +134,7 @@ const AchievementModal: React.FC<AchievementModalProps> = ({
       alignItems: "center", 
       zIndex: 1000 
     }}>
-      <div style={{ 
-        backgroundColor: "white", 
-        padding: "20px", 
-        borderRadius: "10px", 
-        width: "100%", 
-        maxWidth: "500px", 
-        maxHeight: "80vh", 
-        overflow: "auto" 
-      }}>
+      <div style={modalContainerStyle}>
         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "15px" }}>
           <h2 style={{ margin: 0 }}>Achievements</h2>
           <button 
@@ -117,7 +143,8 @@ const AchievementModal: React.FC<AchievementModalProps> = ({
               background: "none", 
               border: "none", 
               cursor: "pointer", 
-              fontSize: "16px" 
+              fontSize: "16px", 
+              color: isDarkMode ? "#fff" : "#000"
             }}
           >
             ✕
@@ -131,39 +158,19 @@ const AchievementModal: React.FC<AchievementModalProps> = ({
         <div style={{ marginBottom: "15px" }}>
           <button 
             onClick={() => setFilter("all")} 
-            style={{ 
-              marginRight: "10px", 
-              padding: "5px 10px", 
-              background: filter === "all" ? "#ddd" : "#f0f0f0", 
-              border: "1px solid #ccc", 
-              borderRadius: "8px", 
-              cursor: "pointer"
-            }}
+            style={buttonStyle(filter === "all")}
           >
             All
           </button>
           <button 
             onClick={() => setFilter("completed")} 
-            style={{ 
-              marginRight: "10px", 
-              padding: "5px 10px", 
-              background: filter === "completed" ? "#ddd" : "#f0f0f0", 
-              border: "1px solid #ccc", 
-              borderRadius: "8px",
-              cursor: "pointer" 
-            }}
+            style={buttonStyle(filter === "completed")}
           >
             Completed
           </button>
           <button 
             onClick={() => setFilter("locked")} 
-            style={{ 
-              padding: "5px 10px", 
-              background: filter === "locked" ? "#ddd" : "#f0f0f0", 
-              border: "1px solid #ccc", 
-              borderRadius: "8px",
-              cursor: "pointer" 
-            }}
+            style={buttonStyle(filter === "locked")}
           >
             Locked
           </button>
@@ -173,15 +180,7 @@ const AchievementModal: React.FC<AchievementModalProps> = ({
           {filteredAchievements.map(achievement => (
             <div 
               key={achievement.achievementID} 
-              style={{ 
-                border: "1px solid #ccc", 
-                borderRadius: "10px", 
-                padding: "12px", 
-                marginBottom: "10px",
-                backgroundColor: achievement.completed ? "#f8f8f8" : "#f0f0f0",
-                display: "flex",
-                alignItems: "center"
-              }}
+              style={cardStyle(achievement.completed)}
             >
               {achievement.image_path && (
                 <img 

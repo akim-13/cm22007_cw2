@@ -1,6 +1,5 @@
 from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, declarative_base
 from config import DATABASE_URL
 
 # Second arg is for sqlite specifically - FastAPI uses multithreading on default
@@ -14,7 +13,3 @@ ORM_Base = declarative_base()
 # Flush means reload
 # All sessions use the engine provided
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)  # This is known as a session factory 
-
-
-
-

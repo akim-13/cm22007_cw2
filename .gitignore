@@ -1,3 +1,4 @@
+.db
 .env
 __pycache__/
 venv/
@@ -176,3 +177,8 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+# joblib cache
+cache/
+
+*.db
