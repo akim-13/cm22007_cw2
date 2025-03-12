@@ -42,7 +42,7 @@ This is my calendar (events only have start and end times to save space):
 def breakdown_task_LLM(user_prompt):
     try:
         completion = client.chat.completions.create(
-            model="google/learnlm-1.5-pro-experimental:free",
+            model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
