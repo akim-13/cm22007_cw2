@@ -1,6 +1,7 @@
 from datetime import datetime
-from fastapi import HTTPException
+from fastapi import HTTPException, Form
 from config import default_achievements
+import uvicorn
 
 # DB stuff
 from sqlalchemy.orm import Session
@@ -14,7 +15,6 @@ from services import achievements_service, tasks_service, task_scheduler, event_
 from fastapi import FastAPI, Depends, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-
 
 # Calendar stuff
 import calendar_to_events
@@ -42,15 +42,15 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-# Allow frontend (js) to communicate with backend with CORS (Cross-Origin Resource Sharing)
-# Middleware is a function that is passed through every request before it's passed through a path operation
+# Allow requests from your frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5174"],  # Update with frontend URL
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=["*"],
+    allow_methods=["*"],  # Allow all HTTP methods (GET, POST, etc.)
+    allow_headers=["*"],  # Allow all headers
 )
+
 
 ORM_Base.metadata.create_all(bind=engine)  
 global_db = SessionLocal()
@@ -95,7 +95,7 @@ def get_latest_standalone_event(request: Request, username: str, db: Session = D
 ## ---------- TASK RELATED STUFF ----------
 
 @app.post("/add_task", response_class=JSONResponse)
-def add(request: Request, title: str, description: str, duration: int, priority: int, deadline: datetime, db: Session = Depends(yield_db)):
+def add(request: Request, title: str = Form(...), description: str = Form(...), duration: int = Form(...),priority: int = Form(...), deadline: datetime = Form(...), db: Session = Depends(yield_db)):
     if priority not in [0, 1, 2]:
         raise HTTPException(status_code=400, detail="Invalid priority value. Must be 0 (low), 1 (medium), or 2 (high).")
     
@@ -154,7 +154,7 @@ def complete_task(request: Request, eventID: int, start: datetime, end: datetime
 # ---------- ACHIEVEMENTS RELATED STUFF ----------
 
 @app.post("/add_standalone_event", response_class=JSONResponse)
-def add_standalone_event(request: Request, standaloneEventName: str, standaloneEventDescription: str, start: datetime, end: datetime, db: Session = Depends(yield_db)):
+def add_standalone_event(request: Request, standaloneEventName: str = Form(), standaloneEventDescription: str = Form(), start: datetime = Form(), end: datetime = Form(), db: Session = Depends(yield_db)):
     new_standalone_event = models.Standalone_Event(standaloneEventName=standaloneEventName, standaloneEventDescription=standaloneEventDescription, start=start, end=end, username="joe")
     db.add(new_standalone_event)
     db.commit()
@@ -252,15 +252,15 @@ def create_user(request: Request, username: str, password: str, db: Session = De
 
    
 def run_app():
-    import uvicorn
     initialize_achievements()
+
     user = global_db.query(User).filter(User.username == "joe").all()
     if not user:
         global_db.add(models.User(username="joe", hashedPassword="x", streakDays=0, currentPoints=0, stressLevel=0))
         global_db.commit()
 
-    uvicorn.run(app, access_log=True, log_level="debug")   
+    return app 
    
  
 if __name__ == "__main__":
-    run_app()
+    uvicorn.run("backend.main:run_app", host="127.0.0.1", port=8000, reload=True, factory=True)

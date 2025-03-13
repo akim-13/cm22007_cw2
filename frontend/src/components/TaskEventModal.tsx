@@ -75,6 +75,7 @@ const TaskEventModal: React.FC<TaskEventModalProps> = ({
     const sendAddRequest = async (formData: formData) => {
         try {
             const addOperation = isTaskMode ? "add_task" : "add_standalone_event"
+            console.warn([...formData.entries()]);
             const response = await axios.post(`${HOST}/${addOperation}`, formData );
             console.log(`Add request ${addOperation} sent successfully:`)
             for (const pair of formData.entries()) { console.log(`${pair[0]}: ${pair[1]}`); }
