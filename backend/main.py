@@ -236,7 +236,7 @@ def get_user_points(request: Request, username: str, db: Session = Depends(yield
     return JSONResponse(status_code = 200, content = response)
 
 @app.get("/autofill/{username}")
-def autofill(request: Request, username: str, description: str, db: Session = Depends(yield_db)) -> autofill.Task:
+def autofill_gen(request: Request, username: str, description: str, db: Session = Depends(yield_db)) -> autofill.Task | autofill.Event:
     details = autofill.gen(description, datetime.now())
     return details
 
