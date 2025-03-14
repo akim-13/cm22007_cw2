@@ -44,7 +44,7 @@ export default function SettingsModal({ open, onClose }: SettingsModalProps) {
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-[10000]">
-      <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+      <div className="themed-bg p-6 rounded-lg shadow-lg w-96">
         <h2 className="text-center text-lg font-semibold mb-4">Settings</h2>
 
         {/* Calendar URL Input */}
