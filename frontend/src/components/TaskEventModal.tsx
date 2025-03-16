@@ -113,13 +113,33 @@ const TaskEventModal: React.FC<TaskEventModalProps> = ({
             return
         }
 
+        var taskEvents = [];
+
         if (isTaskMode) {
             newFCEvent.current.extendedProps["username"] = taskOrEventData.latest_task.username
             newFCEvent.current["id"] = taskOrEventData.latest_task.taskID
             try {
-                const response = await axios.get(`${HOST}/get_events_from_task/${newFCEvent.current["id"]}`)
-                // TODO: Process and add these events.
-                console.warn(response.data)
+                // const response = await axios.get(`${HOST}/get_events_from_task/${newFCEvent.current["id"]}`)
+                const response = await axios.put(`${HOST}/breakdown_task/${newFCEvent.current["id"]}`)
+
+                if (response.data && Array.isArray(response.data.events_added)) {
+                    response.data.events_added.forEach(event => {
+                        var curTaskEvent = { 
+                            title: newFCEvent.current["title"],
+                            start: event.start, 
+                            end: event.end, 
+                            extendedProps: {
+                                ...initialExtendedProps, 
+                                taskID: event.taskID
+                            }
+                        };
+
+                        taskEvents.push(curTaskEvent);
+                    });
+                } else {
+                    console.error("Invalid response format:", response.data);
+                }
+
             } catch (error) {
                 console.error(`Error retrieving events from task ID "${newFCEvent.current["id"]}"`, error)
             }
@@ -128,9 +148,10 @@ const TaskEventModal: React.FC<TaskEventModalProps> = ({
             newFCEvent.current["id"] = taskOrEventData.latest_standalone_event.standaloneEventID
         }
 
+        console.warn(taskEvents)
         const newEventTmp = JSON.parse(JSON.stringify(newFCEvent.current)); 
         // FIXME: Somehow re-renders the calendar for tasks but not for standalone events.
-        setEvents(prevEvents => [...prevEvents, newEventTmp]);
+        setEvents(prevEvents => [...prevEvents, ...taskEvents, newEventTmp]);
         setIsModalOpen(false);
     };
 
