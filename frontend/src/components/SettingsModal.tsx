@@ -8,8 +8,9 @@ interface SettingsModalProps {
 export default function SettingsModal({ open, onClose }: SettingsModalProps) {
   const [calendarUrl, setCalendarUrl] = useState("");
   const [theme, setTheme] = useState("light");
-  const [eventColor, setEventColour] = useState("#3b82f6");
-  const [taskColor, setTaskColour] = useState("#3b82f6");
+    const [eventColor, setEventColor] = useState("#ff6384"); // Red for backend events
+    const [taskColor, setTaskColor] = useState("#90ee90"); // Light green for tasks
+
 
   const handleConfirm = async () => {
     if (!calendarUrl) {

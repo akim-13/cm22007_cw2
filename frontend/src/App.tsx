@@ -34,9 +34,6 @@ const App: React.FC = () => {
     { title: "Task 3", start: "2025-02-23T09:00:00" },
   ]);
 
-  // Memoize events so they don't get a new reference unless updated
-  const memoizedEvents = useMemo(() => events, [events]);
-
   return (
     <div className="flex h-screen w-full justify-center">
       {/* Task Card on the left */}
@@ -60,7 +57,7 @@ const App: React.FC = () => {
       <div className="flex-grow flex flex-col p-6">
         {isModalOpen && (
           <TaskEventModal
-            events={memoizedEvents}
+            events={events}
             setEvents={setEvents}
             isModalOpen={isModalOpen}
             setIsModalOpen={setIsModalOpen}
@@ -70,7 +67,7 @@ const App: React.FC = () => {
         )}
 
         <Calendar
-          events={memoizedEvents}
+          events={events}
           setIsModalOpen={setIsModalOpen}
           newFCEvent={newFCEvent}
           initialExtendedProps={initialExtendedProps}

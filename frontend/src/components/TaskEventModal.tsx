@@ -36,7 +36,8 @@ const TaskEventModal: React.FC<TaskEventModalProps> = ({
       React.ChangeEvent<HTMLSelectElement> |
       React.ChangeEvent<HTMLTextAreaElement>
     ) => {
-        const { name, value } = event.target;
+        const { name, type } = event.target;
+        const value = type === "checkbox" ? (event.target as HTMLInputElement).checked : event.target.value;
 
         const isMainProp = name === "title" || name === "start" || name === "end"
 
@@ -127,7 +128,9 @@ const TaskEventModal: React.FC<TaskEventModalProps> = ({
             newFCEvent.current["id"] = taskOrEventData.latest_standalone_event.standaloneEventID
         }
 
-        setEvents([...events, {...newFCEvent.current}]);
+        const newEventTmp = JSON.parse(JSON.stringify(newFCEvent.current)); 
+        // FIXME: Somehow re-renders the calendar for tasks but not for standalone events.
+        setEvents(prevEvents => [...prevEvents, newEventTmp]);
         setIsModalOpen(false);
     };
 
@@ -150,7 +153,7 @@ const TaskEventModal: React.FC<TaskEventModalProps> = ({
 
             {/* Shared Fields */}
             <TitleInput value={newFCEvent.current.title} onChange={handleInputChange} isTaskMode={isTaskMode} />
-            <StartDateInput value={newFCEvent.current.start} onChange={handleInputChange} />
+            <StartDateInput value={newFCEvent.current.start} onChange={handleInputChange} isTaskMode={isTaskMode} />
 
             {/* Specific Fields */}
             <div className="min-h-[150px]">

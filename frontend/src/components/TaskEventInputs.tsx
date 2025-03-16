@@ -41,7 +41,7 @@ export const TitleInput: React.FC<InputProps & { isTaskMode: boolean }> = ({ val
   />
 );
 
-export const StartDateInput: React.FC<InputProps> = ({ value, onChange }) => (
+export const StartDateInput: React.FC<InputProps> = ({ value, onChange, isTaskMode }) => (
   <input
     name="start"
     type="text"
@@ -49,7 +49,7 @@ export const StartDateInput: React.FC<InputProps> = ({ value, onChange }) => (
     onBlur={(e) => {
       e.target.type = "text";
     }}
-    placeholder="Start Date"
+    placeholder={isTaskMode ? "Deadline" : "Start Date"}
     value={value}
     onChange={onChange}
     required
@@ -77,7 +77,7 @@ export const DurationInput: React.FC<InputProps> = ({ value, onChange }) => (
   <input
     name="duration"
     type="number"
-    placeholder="Estimated Duration (Hours)"
+    placeholder="Estimated Duration (Minutes)"
     value={value}
     onChange={onChange}
     className="border p-2 rounded w-full mt-2"

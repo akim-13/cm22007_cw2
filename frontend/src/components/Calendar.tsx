@@ -133,18 +133,24 @@ const Calendar: React.FC<any> = ({ events, setIsModalOpen, newFCEvent, initialEx
                         click: () => setIsSettingsModalOpen(true),
                     },
                 }}
-                eventSources={[
-                    {
-                        events: [...taskEvents],
-                        color: "rgb(144,238,144)",
+
+                events={[
+                    ...events.map(event => ({
+                        ...event,
+                        color: "blue",  // Default color for newly added events
+                    })),
+                    ...taskEvents.map(task => ({
+                        ...task,
+                        color: "rgb(144,238,144)",  // Light green for tasks
                         textColor: "black",
-                    },
-                    {
-                        events: [ ...backendEvents],
-                        color: "rgb(255,99,132)",
+                    })),
+                    ...backendEvents.map(event => ({
+                        ...event,
+                        color: "rgb(255,99,132)",  // Red for backend events
                         textColor: "black",
-                    }
+                    })),
                 ]}
+
                 eventClick={handleEventClick}
             />
 
