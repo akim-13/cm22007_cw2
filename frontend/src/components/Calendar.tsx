@@ -37,7 +37,7 @@ interface StandaloneEvent {
     end: string;
 }
 
-const Calendar: React.FC<any> = ({ events, setIsModalOpen, newFCEvent, initialExtendedProps }) => {
+const Calendar: React.FC<any> = ({ events, setIsModalOpen, newFCEvent, initialExtendedProps, setIsTaskMode }) => {
     const [isAchievementModalOpen, setIsAchievementModalOpen] = useState(false);
     const [backendEvents, setBackendEvents] = useState<StandaloneEvent[]>([]);
     const [taskEvents, setTaskEvents] = useState<TaskEvent[]>([]);
@@ -89,8 +89,8 @@ const Calendar: React.FC<any> = ({ events, setIsModalOpen, newFCEvent, initialEx
     };
 
     const handleEventClick = (info: any) => {
-        const startTime = info.event.start ? formatDate(info.event.start) : "No start time";
-        const endTime = info.event.end ? formatDate(info.event.end) : "No end time";
+        const startTime = info.event.start ? formatDate(info.event.start) : "";
+        const endTime = info.event.end ? formatDate(info.event.end) : "";
         const extendedProps = info.event.extendedProps;
         let extendedPropsText = "";
 
@@ -105,6 +105,7 @@ const Calendar: React.FC<any> = ({ events, setIsModalOpen, newFCEvent, initialEx
         newFCEvent.current.start = startTime;
         newFCEvent.current.end = endTime;
         newFCEvent.current.extendedProps = extendedProps;
+        setIsTaskMode(!!extendedProps.duration)
         setIsModalOpen(true);
     };
 

@@ -27,8 +27,8 @@ const TaskEventModal: React.FC<TaskEventModalProps> = ({
     events, setEvents, 
     isModalOpen, setIsModalOpen, 
     newFCEvent, initialExtendedProps,
+    isTaskMode, setIsTaskMode,
 }) => {
-    const [isTaskMode, setIsTaskMode] = useState(true);
     const [, forceUpdate] = useState(0); 
 
     const handleInputChange = (

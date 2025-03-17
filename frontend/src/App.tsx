@@ -6,13 +6,14 @@ import InputPrompt from "./components/InputPrompt";
 import "./styles/fullcalendar.css";
 
 const App: React.FC = () => {
+  const [isTaskMode, setIsTaskMode] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false); // added from input_prompt
 
   const initialExtendedProps = {
     username: "joe",
     taskID: undefined,
-    description: undefined,
+    description: "",
     priority: 0,
     isCompleted: false,
     duration: undefined,
@@ -63,6 +64,8 @@ const App: React.FC = () => {
             setIsModalOpen={setIsModalOpen}
             newFCEvent={newFCEvent}
             initialExtendedProps={initialExtendedProps}
+            isTaskMode={isTaskMode}
+            setIsTaskMode={setIsTaskMode}
           />
         )}
 
@@ -71,6 +74,7 @@ const App: React.FC = () => {
           setIsModalOpen={setIsModalOpen}
           newFCEvent={newFCEvent}
           initialExtendedProps={initialExtendedProps}
+          setIsTaskMode={setIsTaskMode}
         />
 
         <div className="pt-4">
@@ -78,6 +82,7 @@ const App: React.FC = () => {
             setIsModalOpen={setIsModalOpen}
             initialExtendedProps={initialExtendedProps}
             newFCEvent={newFCEvent}
+            setIsTaskMode={setIsTaskMode}
           />
         </div>
       </div>
