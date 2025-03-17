@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useEffect} from "react";
+import React, { useState, useEffect, useRef} from "react";
 import axios from "axios"; // Make sure axios is imported
 import Calendar from "./components/Calendar";
 import TaskEventModal from "./components/TaskEventModal";
