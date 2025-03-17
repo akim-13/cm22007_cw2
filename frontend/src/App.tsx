@@ -11,9 +11,7 @@ const App: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false); // added from input_prompt
   const [isSignedIn, setIsSignedIn] = useState(false); // Authentication state
-  const [tasks, setTasks] = useState<any[]>([]); // State to store tasks
-
-
+  const [tasks, setTasks] = useState<any[]>([]); // Store tasks fetched from the API
   const initialExtendedProps = {
     username: "joe",
     taskID: undefined,
@@ -83,8 +81,8 @@ const App: React.FC = () => {
           <div className="flex-grow flex flex-col p-6">
             {isModalOpen && (
               <TaskEventModal
-                events={tasks} // Pass the tasks as events to TaskEventModal
-                setEvents={setTasks} // Update tasks state when event changes
+                events={events}
+                setEvents={setEvents}
                 isModalOpen={isModalOpen}
                 setIsModalOpen={setIsModalOpen}
                 newFCEvent={newFCEvent}
@@ -93,8 +91,10 @@ const App: React.FC = () => {
             )}
 
             <Calendar
-              events={tasks} // Use tasks as events for the calendar
+              events={events}
               setIsModalOpen={setIsModalOpen}
+              newFCEvent={newFCEvent}
+              initialExtendedProps={initialExtendedProps}
             />
 
             <div className="pt-4">

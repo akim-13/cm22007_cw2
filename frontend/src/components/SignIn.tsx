@@ -74,7 +74,6 @@ const SignIn: React.FC<SignInSignUpProps> = ({ onSignIn }) => {
       </div>
     </div>
   );
-  
 };
 
 export default SignIn;
