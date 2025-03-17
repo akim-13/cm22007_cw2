@@ -37,6 +37,18 @@ interface StandaloneEvent {
     end: string;
 }
 
+interface CalendarEvent {
+    title: string;
+    start: string;
+    end?: string;
+    extendedProps?: {
+        description?: string;
+        priority?: string;
+        duration?: string;
+        isCompleted?: boolean;
+    };
+}
+
 const Calendar: React.FC<any> = ({ events, setIsModalOpen, newFCEvent, initialExtendedProps, setIsTaskMode }) => {
     const [isAchievementModalOpen, setIsAchievementModalOpen] = useState(false);
     const [backendEvents, setBackendEvents] = useState<StandaloneEvent[]>([]);
@@ -136,7 +148,7 @@ const Calendar: React.FC<any> = ({ events, setIsModalOpen, newFCEvent, initialEx
                 }}
 
                 events={[
-                    ...events.map(event => ({
+                    ...events.map((event: CalendarEvent) => ({
                         ...event,
                         color: "blue",  // Default color for newly added events
                     })),
