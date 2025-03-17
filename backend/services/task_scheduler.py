@@ -1,16 +1,17 @@
 import json
 
-from config import DATETIME_FORMAT
+from config import DATETIME_FORMAT, API_KEY
 from openai import OpenAI
 from datetime import datetime
 from database import Task, Event
 from sqlalchemy.orm import Session
 from tools import convertToJson
 from services.event_service import get_standalone_events, get_events, delete_events_from_task
-from dotenv import load_dotenv
 
-load_dotenv()
-client = OpenAI()
+client = OpenAI(
+  base_url="https://openrouter.ai/api/v1",
+  api_key=API_KEY,
+)
 
 # FIXME: Still works horribly.
 system_prompt = \
@@ -58,17 +59,17 @@ A priority of 2 is most important.
 This is my calendar (events only have start and end times to save space):
 {calendar}"""
 
-
 def breakdown_task_LLM(user_prompt):
     try:
         completion = client.chat.completions.create(
-            model="gpt-4o-mini",
+            model="google/gemma-3-27b-it:free",
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
             ],
             response_format={"type": "json_object"},
         )
+        
         if not completion or not completion.choices:
                 print("Error: API response is empty.")
                 return {}  
@@ -78,8 +79,9 @@ def breakdown_task_LLM(user_prompt):
         if response is None:
                 print("Error: API response message content is None.")
                 return {}  
-
-        return json.loads(response)["events"]
+        response = json.loads(response)
+        print(response)
+        return response
 
     except Exception as e:
         print("API Error:", str(e))
@@ -92,6 +94,8 @@ def break_down_add_events(username: str, taskID: int, db: Session) -> dict:
     
     if task.events != []:
         delete_events_from_task(taskID, db)  # Delete all the events that are prexisting
+        
+    print("Doing some shit")
     
     standalone_events = get_standalone_events(username, (datetime.now(), task.deadline), db)["standalone_events"]
     
