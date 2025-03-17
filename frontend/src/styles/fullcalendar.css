@@ -1,0 +1,63 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.fc-timegrid-slot {
+  @apply h-[60px] !important;
+}
+
+.fc-event {
+  @apply text-white rounded-md shadow-md p-2;
+
+}
+
+.fc .fc-button-primary {
+  background-color: var(--fc-button-bg-color);
+  color: var(--fc-button-text-color);
+  margin: 10px;
+}
+.fc-prev-button.fc-button.fc-button-primary {
+    margin-right: 0px !important;
+    border-bottom-right-radius: 0px !important;
+    border-top-right-radius: 0px !important;
+}
+
+.fc-next-button.fc-button.fc-button-primary {
+    margin-left: 0px !important;
+    border-bottom-left-radius: 0px !important;
+    border-top-left-radius: 0px !important;
+}
+
+.fc-today-button.fc-button.fc-button-primary {
+    border-radius: 6px !important;
+}
+
+.fc-achievements-button.fc-button.fc-button-primary {
+    border-radius: 6px !important;
+}
+
+.fc-settings-button.fc-button.fc-button-primary {
+    border-radius: 6px !important;
+}
+
+
+#fc-dom-16 {
+  font-size: 20px;
+  display: inline;
+  align-items: center;
+  margin-left: 10px;
+  font-weight: 600;
+  position: relative; 
+  top: 3px; /* Adjust this value as needed */
+}
+
+.fc .fc-toolbar {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  position: relative; /* Ensure the parent is positioned relative */
+}
+
+.fc-createEvent-button.fc-button.fc-button-primary {
+  border-radius: 6px !important;
+}
