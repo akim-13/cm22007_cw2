@@ -20,10 +20,11 @@ interface TaskEventModalProps {
     setEvents: (events: InputEvent[]) => void;
     isModalOpen: boolean;
     setIsModalOpen: (value: boolean) => void;
+    isTaskMode: boolean;
 }
 
 
-const TaskEventModal: React.FC<TaskEventModalProps> = ({ 
+const TaskEventModal: React.FC<any> = ({ 
     events, setEvents, 
     isModalOpen, setIsModalOpen, 
     newFCEvent, initialExtendedProps,

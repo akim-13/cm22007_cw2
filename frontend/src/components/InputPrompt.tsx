@@ -5,14 +5,8 @@ export default function InputPrompt({ setIsModalOpen, newFCEvent, initialExtende
   const [input, setInput] = useState("");
   const [response, setResponse] = useState(null);
 
-<<<<<<< HEAD
-  const handleSubmit = async () => {
-    if (!input.trim()) return;
-    
-=======
     const handleSubmit = async () => {
         if (!input.trim()) return;
->>>>>>> 2628378fadb08ee85a4c52f57f45fc7d9876192e
 
         try {
             const username = "joe";

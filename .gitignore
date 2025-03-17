@@ -1,7 +1,6 @@
 *.db
 database.db
 node_modules/
-.env
 __pycache__/
 venv/
 =======
@@ -135,7 +134,7 @@ celerybeat.pid
 *.sage.py
 
 # Environments
-.env
+# .env
 .venv
 env/
 venv/
