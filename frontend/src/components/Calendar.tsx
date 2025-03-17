@@ -19,7 +19,7 @@ const formatDate = (date: Date): string => {
 };
 
 interface TaskEvent {
-    eventID: string;
+    id: integer;
     title: string;
     start: string;
     extendedProps: {
@@ -31,7 +31,7 @@ interface TaskEvent {
 }
 
 interface StandaloneEvent {
-    eventID: string;
+    id: integer;
     title: string;
     start: string;
     end: string;
@@ -55,7 +55,7 @@ const Calendar: React.FC<any> = ({ events, setIsModalOpen, newFCEvent, initialEx
             );
             const standaloneEvents = standaloneEventsResponse.data.standalone_events.map(
                 (event: any) => ({
-                    eventID: event.standaloneEventID,
+                    id: event.standaloneEventID,
                     title: event.standaloneEventName,
                     start: event.start,
                     end: event.end,
@@ -101,13 +101,14 @@ const Calendar: React.FC<any> = ({ events, setIsModalOpen, newFCEvent, initialEx
         }
 
         newFCEvent.current = { extendedProps: { ...initialExtendedProps } };
-        newFCEvent.current.id = info.event.id;
+        newFCEvent.current.id = info.event.id
         newFCEvent.current.title = info.event.title || "";
         newFCEvent.current.start = startTime;
         newFCEvent.current.end = endTime;
         newFCEvent.current.extendedProps = extendedProps;
         setIsTaskMode(!!extendedProps.duration)
         setIsModalOpen(true);
+        console.warn(JSON.parse(JSON.stringify(newFCEvent.current)))
     };
 
     return (
