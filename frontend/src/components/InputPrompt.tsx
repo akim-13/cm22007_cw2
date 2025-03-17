@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Check, Plus } from "lucide-react";
 
 export default function InputPrompt({ setIsModalOpen, newFCEvent, initialExtendedProps }) {
@@ -7,6 +7,7 @@ export default function InputPrompt({ setIsModalOpen, newFCEvent, initialExtende
 
   const handleSubmit = async () => {
     if (!input.trim()) return;
+    
 
     try {
       const username = "joe";

@@ -81,8 +81,8 @@ const App: React.FC = () => {
           <div className="flex-grow flex flex-col p-6">
             {isModalOpen && (
               <TaskEventModal
-                events={events}
-                setEvents={setEvents}
+                events={tasks}
+                setEvents={setTasks}
                 isModalOpen={isModalOpen}
                 setIsModalOpen={setIsModalOpen}
                 newFCEvent={newFCEvent}
@@ -91,7 +91,7 @@ const App: React.FC = () => {
             )}
 
             <Calendar
-              events={events}
+              events={tasks}
               setIsModalOpen={setIsModalOpen}
               newFCEvent={newFCEvent}
               initialExtendedProps={initialExtendedProps}
