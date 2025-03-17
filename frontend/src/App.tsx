@@ -88,6 +88,8 @@ const App: React.FC = () => {
                 setIsModalOpen={setIsModalOpen}
                 newFCEvent={newFCEvent}
                 initialExtendedProps={initialExtendedProps}
+                setIsTaskMode={setIsTaskMode}
+                isTaskMode={isTaskMode}
               />
             )}
 
@@ -96,13 +98,15 @@ const App: React.FC = () => {
               setIsModalOpen={setIsModalOpen}
               newFCEvent={newFCEvent}
               initialExtendedProps={initialExtendedProps}
+              setIsTaskMode={setIsTaskMode}
             />
 
             <div className="pt-4">
               <InputPrompt
                 setIsModalOpen={setIsModalOpen}
-            initialExtendedProps={initialExtendedProps}
-            newFCEvent={newFCEvent}
+                initialExtendedProps={initialExtendedProps}
+                newFCEvent={newFCEvent}
+                setIsTaskMode={setIsTaskMode}
               />
             </div>
           </div>
