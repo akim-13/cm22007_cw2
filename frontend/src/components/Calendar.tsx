@@ -101,6 +101,7 @@ const Calendar: React.FC<any> = ({ events, setIsModalOpen, newFCEvent, initialEx
         }
 
         newFCEvent.current = { extendedProps: { ...initialExtendedProps } };
+        newFCEvent.current.id = info.event.id;
         newFCEvent.current.title = info.event.title || "";
         newFCEvent.current.start = startTime;
         newFCEvent.current.end = endTime;

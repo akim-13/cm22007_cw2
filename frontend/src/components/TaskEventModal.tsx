@@ -31,7 +31,7 @@ const TaskEventModal: React.FC<TaskEventModalProps> = ({
 }) => {
     const [, forceUpdate] = useState(0); 
 
-    const handleInputChange = (
+    const handleInputChange = async (
       event: React.ChangeEvent<HTMLInputElement> |
       React.ChangeEvent<HTMLSelectElement> |
       React.ChangeEvent<HTMLTextAreaElement>
@@ -51,6 +51,19 @@ const TaskEventModal: React.FC<TaskEventModalProps> = ({
         }
 
         forceUpdate(x => x+1);
+
+        const id = newFCEvent.current["id"] ?? -1
+        try {
+            if (type === "checkbox" && (event.target as HTMLInputElement).checked) {
+                const response = await axios.put(`${HOST}/complete_task/${id}`);
+                console.log(`Task "${id}" completed successfully`)
+            } else {
+                const response = await axios.put(`${HOST}/incomplete_task/${id}`);
+                console.log(`Task "${id}" incompleted successfully`)
+            }
+        } catch (error) {
+            console.error("Error completing a task", error)
+        }
     };
 
     const getFormData = () => {
@@ -119,7 +132,6 @@ const TaskEventModal: React.FC<TaskEventModalProps> = ({
             newFCEvent.current.extendedProps["username"] = taskOrEventData.latest_task.username
             newFCEvent.current["id"] = taskOrEventData.latest_task.taskID
             try {
-                // const response = await axios.get(`${HOST}/get_events_from_task/${newFCEvent.current["id"]}`)
                 const response = await axios.put(`${HOST}/breakdown_task/${newFCEvent.current["id"]}`)
 
                 if (response.data && Array.isArray(response.data.events_added)) {
