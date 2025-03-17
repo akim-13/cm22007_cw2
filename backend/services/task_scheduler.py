@@ -13,16 +13,16 @@ client = OpenAI(
   api_key=API_KEY,
 )
 
-# FIXME: Still works horribly.
+
 system_prompt = \
     f"""You are a calendar and task manager. Your job: break down tasks into events to be placed in a calendar. 
 The number of events is determined by the the complexity and length of the task. 
-Your response should be in JSON format, as a list of events.
+Your response should be in JSON only, no markdown, explanation or any other text.
 
 An event has 3 keys: ['taskID', 'start', 'end']. Here are their descriptions:
 'taskID': task id of this event (integer),
-'start': start datetime formatted in '{DATETIME_FORMAT}' (string),
-'end': end datetime formatted in '{DATETIME_FORMAT}' (string).
+'start': start datetime (string),
+'end': end datetime (string).
 
 The user will also provide a calendar, as a list of events, so you can avoid conflicts and space out events effectively.
 
@@ -40,13 +40,13 @@ calendar. Be more sensible, and think about how a real human would spread their
 workload throughout the day. Think about how the events would be spread out
 throughout multiple days as well, don't just clump everything in one day.
 
-!! Do NOT schedule any events between 11 PM and 6 AM !! This period is reserved
+Do NOT schedule any events between 11 PM and 6 AM !! This period is reserved
 only for sleep. IT IS STRICTLY FORBIDDEN TO SCHEDLUE ANYTHING BETWEEN THE TIMES
-23:00-6:00!!!!!!!!
+23:00-6:00
 
 EXTREMELY IMPORTANT: SCHEDULE THE EVENTS ON DIFFERENT DAYS 99% OF THE TIMES!!!!!
 ONLY SCHEDULE ON THE SAME DAY IF THERE IS VERY LITTLE TIME BEFORE THE
-DEADLINE!!!!!!!!!!!!!
+DEADLINE
 """
 
 
@@ -62,7 +62,7 @@ This is my calendar (events only have start and end times to save space):
 def breakdown_task_LLM(user_prompt):
     try:
         completion = client.chat.completions.create(
-            model="google/gemma-3-27b-it:free",
+            model="meta-llama/llama-3.3-70b-instruct:free",
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
@@ -73,14 +73,17 @@ def breakdown_task_LLM(user_prompt):
         if not completion or not completion.choices:
                 print("Error: API response is empty.")
                 return {}  
-            
+        
+        print(completion)
         response = completion.choices[0].message.content
 
         if response is None:
                 print("Error: API response message content is None.")
                 return {}  
-        response = json.loads(response)
+            
         print(response)
+        response = json.loads(response)
+        
         return response
 
     except Exception as e:
