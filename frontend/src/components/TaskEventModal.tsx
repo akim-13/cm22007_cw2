@@ -27,11 +27,11 @@ const TaskEventModal: React.FC<TaskEventModalProps> = ({
     events, setEvents, 
     isModalOpen, setIsModalOpen, 
     newFCEvent, initialExtendedProps,
+    isTaskMode, setIsTaskMode,
 }) => {
-    const [isTaskMode, setIsTaskMode] = useState(true);
     const [, forceUpdate] = useState(0); 
 
-    const handleInputChange = (
+    const handleInputChange = async (
       event: React.ChangeEvent<HTMLInputElement> |
       React.ChangeEvent<HTMLSelectElement> |
       React.ChangeEvent<HTMLTextAreaElement>
@@ -51,7 +51,46 @@ const TaskEventModal: React.FC<TaskEventModalProps> = ({
         }
 
         forceUpdate(x => x+1);
+
+        const id = newFCEvent.current["id"] ?? -1
+        try {
+            if (type === "checkbox" && (event.target as HTMLInputElement).checked) {
+                const response = await axios.put(`${HOST}/complete_task/${id}`);
+                console.log(`Task "${id}" completed successfully`)
+            } else {
+                const response = await axios.put(`${HOST}/incomplete_task/${id}`);
+                console.log(`Task "${id}" uncompleted successfully`)
+            }
+        } catch (error) {
+            console.error("Error completing a task", error)
+        }
     };
+
+    
+    const handleDelete = async () => {
+        const currentFCEvent = newFCEvent.current
+        if (!currentFCEvent.id) {
+            console.log("Nothing to delete")
+            return
+        }
+
+        try {
+            if (isTaskMode) {
+                const events_response = await axios.delete(`${HOST}/delete_events_from_task/${currentFCEvent.id}`)
+                console.log(`Events of task "${currentFCEvent.id}" deleted successfully.`)
+                const task_response = await axios.delete(`${HOST}/delete_task/${currentFCEvent.id}`)
+                console.log(`Task "${currentFCEvent.id}" deleted successfully.`)
+            } else {
+                const response = await axios.delete(`${HOST}/delete_standalone_event/${currentFCEvent.id}`)
+                console.log(`Event "${currentFCEvent.id}" deleted successfully.`)
+            }
+        } catch (e) {
+            console.error("Error deleteing task or event", e)
+        }
+
+        setIsModalOpen(false)
+        window.location.reload()
+    }
 
     const getFormData = () => {
         const currentFCEvent = newFCEvent.current;
@@ -81,7 +120,7 @@ const TaskEventModal: React.FC<TaskEventModalProps> = ({
             console.log(`Add request ${addOperation} sent successfully:`)
             for (const pair of formData.entries()) { console.log(`${pair[0]}: ${pair[1]}`); }
         } catch (error) {
-            console.error("Error performing ${operation}:", error);
+            console.error(`Error performing ${operation}:`, error);
         }
     }
 
@@ -101,9 +140,21 @@ const TaskEventModal: React.FC<TaskEventModalProps> = ({
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        // newFCEvent.current = { extendedProps: {...initialExtendedProps} }
 
         const formData = getFormData();
+
+        if (newFCEvent.current.id) {
+            // TODO: edit task/event.
+            console.log("Nothing yet but should be edited.")
+            setIsModalOpen(false);
+
+            // "Comleted" check mark isn't updated visually unless pulled from backend.
+            if (isTaskMode) {
+                window.location.reload()
+            }
+            return
+        }
+
         await sendAddRequest(formData);
         const taskOrEventData = await fetchTasksOrEventsData();
 
@@ -119,7 +170,6 @@ const TaskEventModal: React.FC<TaskEventModalProps> = ({
             newFCEvent.current.extendedProps["username"] = taskOrEventData.latest_task.username
             newFCEvent.current["id"] = taskOrEventData.latest_task.taskID
             try {
-                // const response = await axios.get(`${HOST}/get_events_from_task/${newFCEvent.current["id"]}`)
                 const response = await axios.put(`${HOST}/breakdown_task/${newFCEvent.current["id"]}`)
 
                 if (response.data && Array.isArray(response.data.events_added)) {
@@ -148,11 +198,13 @@ const TaskEventModal: React.FC<TaskEventModalProps> = ({
             newFCEvent.current["id"] = taskOrEventData.latest_standalone_event.standaloneEventID
         }
 
-        console.warn(taskEvents)
         const newEventTmp = JSON.parse(JSON.stringify(newFCEvent.current)); 
-        // FIXME: Somehow re-renders the calendar for tasks but not for standalone events.
         setEvents(prevEvents => [...prevEvents, ...taskEvents, newEventTmp]);
         setIsModalOpen(false);
+
+        if (!isTaskMode) {
+            window.location.reload()
+        }
     };
 
     return (
@@ -199,8 +251,13 @@ const TaskEventModal: React.FC<TaskEventModalProps> = ({
 
             {/* Buttons */}
             <div className="mt-4 flex justify-end space-x-2">
+
+              <button type="button" onClick={handleDelete} className="bg-red-500 text-white px-4 py-2 rounded">
+                {"Delete"}
+              </button>
+
               <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded">
-                {isTaskMode ? "Submit Task" : "Submit Event"}
+                {"Submit"}
               </button>
 
               <button type="button" onClick={() => setIsModalOpen(false)} className="bg-gray-500 text-white px-4 py-2 rounded">

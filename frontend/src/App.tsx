@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef} from "react";
+import React, { useState, useEffect, useRef, useEffect} from "react";
 import axios from "axios"; // Make sure axios is imported
 import Calendar from "./components/Calendar";
 import TaskEventModal from "./components/TaskEventModal";
@@ -8,6 +8,7 @@ import SignIn from "./components/SignIn"; // Import the SignIn component
 import "./styles/fullcalendar.css";
 
 const App: React.FC = () => {
+  const [isTaskMode, setIsTaskMode] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false); // added from input_prompt
   const [isSignedIn, setIsSignedIn] = useState(false); // Authentication state
@@ -15,7 +16,7 @@ const App: React.FC = () => {
   const initialExtendedProps = {
     username: "joe",
     taskID: undefined,
-    description: undefined,
+    description: "",
     priority: 0,
     isCompleted: false,
     duration: undefined,

@@ -19,7 +19,7 @@ const formatDate = (date: Date): string => {
 };
 
 interface TaskEvent {
-    eventID: string;
+    id: integer;
     title: string;
     start: string;
     extendedProps: {
@@ -31,13 +31,25 @@ interface TaskEvent {
 }
 
 interface StandaloneEvent {
-    eventID: string;
+    id: integer;
     title: string;
     start: string;
     end: string;
 }
 
-const Calendar: React.FC<any> = ({ events, setIsModalOpen, newFCEvent, initialExtendedProps }) => {
+interface CalendarEvent {
+    title: string;
+    start: string;
+    end?: string;
+    extendedProps?: {
+        description?: string;
+        priority?: string;
+        duration?: string;
+        isCompleted?: boolean;
+    };
+}
+
+const Calendar: React.FC<any> = ({ events, setIsModalOpen, newFCEvent, initialExtendedProps, setIsTaskMode }) => {
     const [isAchievementModalOpen, setIsAchievementModalOpen] = useState(false);
     const [backendEvents, setBackendEvents] = useState<StandaloneEvent[]>([]);
     const [taskEvents, setTaskEvents] = useState<TaskEvent[]>([]);
@@ -55,7 +67,7 @@ const Calendar: React.FC<any> = ({ events, setIsModalOpen, newFCEvent, initialEx
             );
             const standaloneEvents = standaloneEventsResponse.data.standalone_events.map(
                 (event: any) => ({
-                    eventID: event.standaloneEventID,
+                    id: event.standaloneEventID,
                     title: event.standaloneEventName,
                     start: event.start,
                     end: event.end,
@@ -89,8 +101,8 @@ const Calendar: React.FC<any> = ({ events, setIsModalOpen, newFCEvent, initialEx
     };
 
     const handleEventClick = (info: any) => {
-        const startTime = info.event.start ? formatDate(info.event.start) : "No start time";
-        const endTime = info.event.end ? formatDate(info.event.end) : "No end time";
+        const startTime = info.event.start ? formatDate(info.event.start) : "";
+        const endTime = info.event.end ? formatDate(info.event.end) : "";
         const extendedProps = info.event.extendedProps;
         let extendedPropsText = "";
 
@@ -101,11 +113,14 @@ const Calendar: React.FC<any> = ({ events, setIsModalOpen, newFCEvent, initialEx
         }
 
         newFCEvent.current = { extendedProps: { ...initialExtendedProps } };
+        newFCEvent.current.id = info.event.id
         newFCEvent.current.title = info.event.title || "";
         newFCEvent.current.start = startTime;
         newFCEvent.current.end = endTime;
         newFCEvent.current.extendedProps = extendedProps;
+        setIsTaskMode(!!extendedProps.duration)
         setIsModalOpen(true);
+        console.warn(JSON.parse(JSON.stringify(newFCEvent.current)))
     };
 
     return (
@@ -135,7 +150,7 @@ const Calendar: React.FC<any> = ({ events, setIsModalOpen, newFCEvent, initialEx
                 }}
 
                 events={[
-                    ...events.map(event => ({
+                    ...events.map((event: CalendarEvent) => ({
                         ...event,
                         color: "blue",  // Default color for newly added events
                     })),
