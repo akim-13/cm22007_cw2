@@ -8,8 +8,8 @@ interface SettingsModalProps {
 export default function SettingsModal({ open, onClose }: SettingsModalProps) {
   const [calendarUrl, setCalendarUrl] = useState("");
   const [theme, setTheme] = useState("light");
-    const [eventColor, setEventColor] = useState("#ff6384"); // Red for backend events
-    const [taskColor, setTaskColor] = useState("#90ee90"); // Light green for tasks
+  const [eventColor, setEventColor] = useState("#ff6384"); // Red for backend events
+  const [taskColor, setTaskColor] = useState("#90ee90"); // Light green for tasks
 
 
   const handleConfirm = async () => {
@@ -73,18 +73,20 @@ export default function SettingsModal({ open, onClose }: SettingsModalProps) {
         <label className="block text-sm font-medium mb-1">Event Colour:</label>
         <input
           type="color"
+          id="eventColor"
           value={eventColor}
-          onChange={(e) => setEventColour(e.target.value)}
-          className="w-full h-10 mb-4 border rounded-md cursor-pointer"
+          onChange={(e) => setEventColor(e.target.value)}
+          className="w-full h-10 p-1 rounded"
         />
 
         {/* Task Color Picker */}
         <label className="block text-sm font-medium mb-1">Task Colour:</label>
         <input
           type="color"
+          id="taskColor"
           value={taskColor}
-          onChange={(e) => setTaskColour(e.target.value)}
-          className="w-full h-10 mb-4 border rounded-md cursor-pointer"
+          onChange={(e) => setTaskColor(e.target.value)}
+          className="w-full h-10 p-1 rounded"
         />
 
         {/* Buttons */}
