@@ -1,67 +1,81 @@
 import { useState, useRef } from "react";
 import { Check, Plus } from "lucide-react";
 
-export default function InputPrompt({ setIsModalOpen, newFCEvent, initialExtendedProps, setIsTaskMode }) {
+interface InputPromptProps {
+  setIsModalOpen: (isOpen: boolean) => void;
+  newFCEvent: React.MutableRefObject<any>;
+  initialExtendedProps: Record<string, any>;
+  setIsTaskMode: (isTask: boolean) => void;
+}
+
+interface AIResponse {
+  title: string;
+  description: string;
+  type: "Task" | "Event";
+  deadline?: string;
+  durationMinutes?: string;
+  priority?: number;
+  start?: string;
+  end?: string;
+}
+
+export default function InputPrompt({ setIsModalOpen, newFCEvent, initialExtendedProps, setIsTaskMode }: InputPromptProps) {
   const [input, setInput] = useState("");
-  const [response, setResponse] = useState(null);
+  const [response, setResponse] = useState<AIResponse | null>(null);
 
-    const handleSubmit = async () => {
-        if (!input.trim()) return;
+  const handleSubmit = async () => {
+    if (!input.trim()) return;
 
-        try {
-            const username = "joe";
-            const res = await fetch(
-                `http://localhost:8000/autofill/${username}?description=${encodeURIComponent(
-                  input
-                )}`,
-                {
-                    method: "GET",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                }
-            );
-
-            if (!res.ok) {
-                throw new Error("Failed to fetch data");
-            }
-
-            const data = await res.json();
-            setResponse(data);
-            console.log("AI Response:", data);
-
-            newFCEvent.current = { extendedProps: { ...initialExtendedProps } };
-            const cur = newFCEvent.current
-            cur["title"] = data.title
-            cur.extendedProps["description"] = data.description
-
-            if (data.type === "Task") {
-                setIsTaskMode(true)
-                cur["start"] = data.deadline ?? ""
-                cur.extendedProps["duration"] = data.durationMinutes ?? ""
-                cur.extendedProps["priority"] = data?.priority ?? 0
-                
-            } else {
-                setIsTaskMode(false)
-                cur["start"] = data.start ?? ""
-                cur["end"] = data.end ?? ""
-            }
-
-            setIsModalOpen(true)
-
-
-        } catch (error) {
-            console.error("Error:", error);
+    try {
+      const username = "joe";
+      const res = await fetch(
+        `http://localhost:8000/autofill/${username}?description=${encodeURIComponent(
+          input
+        )}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
         }
+      );
 
+      if (!res.ok) {
+        throw new Error("Failed to fetch data");
+      }
 
-        setInput("");
-    };
+      const data: AIResponse = await res.json();
+      setResponse(data);
+      console.log("AI Response:", data);
 
-    const handleCreateEventClick = () => {
-        newFCEvent.current = { extendedProps: { ...initialExtendedProps } };
-        setIsModalOpen(true);
-    };
+      newFCEvent.current = { extendedProps: { ...initialExtendedProps } };
+      const cur = newFCEvent.current;
+      cur["title"] = data.title;
+      cur.extendedProps["description"] = data.description;
+
+      if (data.type === "Task") {
+        setIsTaskMode(true);
+        cur["start"] = data.deadline ?? "";
+        cur.extendedProps["duration"] = data.durationMinutes ?? "";
+        cur.extendedProps["priority"] = data?.priority ?? 0;
+      } else {
+        setIsTaskMode(false);
+        cur["start"] = data.start ?? "";
+        cur["end"] = data.end ?? "";
+      }
+
+      setIsModalOpen(true);
+    } catch (error) {
+      console.error("Error:", error);
+    }
+
+    setInput("");
+  };
+
+  const handleCreateEventClick = () => {
+    newFCEvent.current = { extendedProps: { ...initialExtendedProps } };
+    setIsModalOpen(true);
+  };
 
   return (
     <div className="flex flex-col w-full">
@@ -86,7 +100,6 @@ export default function InputPrompt({ setIsModalOpen, newFCEvent, initialExtende
           <Plus className="w-6 h-6" />
         </button>
       </div>
-
     </div>
   );
 }
