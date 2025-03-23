@@ -59,17 +59,14 @@ const App: React.FC = () => {
             {tasks.length > 0 ? (
               tasks.map((task) => (
                 <TaskCard
-                  key={task.taskID} // Unique key for each task
+                  taskID={task.taskID} // Unique key for each task
                   title={task.title}
-                  priority={task.priority === 0 ? "Low" : "High"} // Assuming priority is a number
-                  duration={`${task.duration} hours`}
+                  priority={task.priority === 0 ? "low" : "high"} // Assuming priority is a number
+                  duration={`${task.duration} minutes`}
                   deadline={task.deadline}
                   description={task.description}
                   dropdown={true} // or false based on your needs
                   otherTasks={[
-                    "Set up database",
-                    "Create routes",
-                    "Implement security measures",
                   ]}
                 />
               ))
