@@ -14,14 +14,40 @@ import axios from "axios";
 
 const HOST="http://localhost:8000"
 
+interface InputEvent {
+  title: string;
+  start: string;
+  end: string;
+  id?: number;
+  extendedProps: {
+    description: string;
+    duration: string;
+    priority: string;
+    isCompleted: boolean;
+    [key: string]: any;
+  };
+}
+
+interface TaskEvent {
+  title: string;
+  start: string;
+  end: string;
+  extendedProps: {
+    taskID: number;
+    [key: string]: any;
+  };
+}
 
 interface TaskEventModalProps {
     events: InputEvent[];
-    setEvents: (events: InputEvent[]) => void;
+    setEvents: React.Dispatch<React.SetStateAction<InputEvent[]>>;
     isModalOpen: boolean;
     setIsModalOpen: (value: boolean) => void;
+    isTaskMode: boolean;
+    setIsTaskMode: (value: boolean) => void;
+    newFCEvent: React.MutableRefObject<InputEvent>;
+    initialExtendedProps: Record<string, any>;
 }
-
 
 const TaskEventModal: React.FC<TaskEventModalProps> = ({ 
     events, setEvents, 
@@ -32,9 +58,7 @@ const TaskEventModal: React.FC<TaskEventModalProps> = ({
     const [, forceUpdate] = useState(0); 
 
     const handleInputChange = async (
-      event: React.ChangeEvent<HTMLInputElement> |
-      React.ChangeEvent<HTMLSelectElement> |
-      React.ChangeEvent<HTMLTextAreaElement>
+      event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
     ) => {
         const { name, type } = event.target;
         const value = type === "checkbox" ? (event.target as HTMLInputElement).checked : event.target.value;
@@ -42,7 +66,7 @@ const TaskEventModal: React.FC<TaskEventModalProps> = ({
         const isMainProp = name === "title" || name === "start" || name === "end"
 
         if (isMainProp) {
-            newFCEvent.current[name] = value;
+            newFCEvent.current[name as keyof Pick<InputEvent, 'title' | 'start' | 'end'>] = value as string;
         } else {
             newFCEvent.current.extendedProps = {
                 ...newFCEvent.current.extendedProps, 
@@ -52,17 +76,20 @@ const TaskEventModal: React.FC<TaskEventModalProps> = ({
 
         forceUpdate(x => x+1);
 
-        const id = newFCEvent.current["id"] ?? -1
-        try {
-            if (type === "checkbox" && (event.target as HTMLInputElement).checked) {
-                const response = await axios.put(`${HOST}/complete_task/${id}`);
-                console.log(`Task "${id}" completed successfully`)
-            } else {
-                const response = await axios.put(`${HOST}/incomplete_task/${id}`);
-                console.log(`Task "${id}" uncompleted successfully`)
+        const id = newFCEvent.current.id ?? -1;
+        if (type === "checkbox") {
+            const isChecked = (event.target as HTMLInputElement).checked;
+            try {
+                if (isChecked) {
+                    const response = await axios.put(`${HOST}/complete_task/${id}`);
+                    console.log(`Task "${id}" completed successfully`);
+                } else {
+                    const response = await axios.put(`${HOST}/incomplete_task/${id}`);
+                    console.log(`Task "${id}" uncompleted successfully`);
+                }
+            } catch (error) {
+                console.error("Error completing a task", error);
             }
-        } catch (error) {
-            console.error("Error completing a task", error)
         }
     };
 
@@ -112,29 +139,29 @@ const TaskEventModal: React.FC<TaskEventModalProps> = ({
         return formData;
     }
 
-    const sendAddRequest = async (formData: formData) => {
+    const sendAddRequest = async (formData: FormData) => {
+        const addOperation = isTaskMode ? "add_task" : "add_standalone_event";
         try {
-            const addOperation = isTaskMode ? "add_task" : "add_standalone_event"
             console.warn([...formData.entries()]);
             const response = await axios.post(`${HOST}/${addOperation}`, formData );
             console.log(`Add request ${addOperation} sent successfully:`)
             for (const pair of formData.entries()) { console.log(`${pair[0]}: ${pair[1]}`); }
         } catch (error) {
-            console.error(`Error performing ${operation}:`, error);
+            console.error(`Error performing ${addOperation}:`, error);
         }
     }
 
     const fetchTasksOrEventsData = async () => {
+        const getOperation = isTaskMode ? "get_latest_user_task" : "get_latest_standalone_event";
         try {
-            const getOperation = isTaskMode ? "get_latest_user_task" : "get_latest_standalone_event"
-            const username = "joe"
-            const response = await axios.get(`${HOST}/${getOperation}/${username}`)
-            console.log(`Fetch request ${getOperation} successful:`)
-            console.log(response.data)
-            return response.data
+            const username = "joe";
+            const response = await axios.get(`${HOST}/${getOperation}/${username}`);
+            console.log(`Fetch request ${getOperation} successful:`);
+            console.log(response.data);
+            return response.data;
         } catch (error) {
             console.error(`Error performing ${getOperation}:`, error);
-            return null
+            return null;
         }
     }
 
@@ -164,18 +191,18 @@ const TaskEventModal: React.FC<TaskEventModalProps> = ({
             return
         }
 
-        var taskEvents = [];
+        const taskEvents: TaskEvent[] = [];
 
         if (isTaskMode) {
             newFCEvent.current.extendedProps["username"] = taskOrEventData.latest_task.username
-            newFCEvent.current["id"] = taskOrEventData.latest_task.taskID
+            newFCEvent.current.id = taskOrEventData.latest_task.taskID
             try {
-                const response = await axios.put(`${HOST}/breakdown_task/${newFCEvent.current["id"]}`)
+                const response = await axios.put(`${HOST}/breakdown_task/${newFCEvent.current.id}`)
 
                 if (response.data && Array.isArray(response.data.events_added)) {
-                    response.data.events_added.forEach(event => {
-                        var curTaskEvent = { 
-                            title: newFCEvent.current["title"],
+                    response.data.events_added.forEach((event: { start: string; end: string; taskID: number }) => {
+                        const curTaskEvent: TaskEvent = { 
+                            title: newFCEvent.current.title,
                             start: event.start, 
                             end: event.end, 
                             extendedProps: {
@@ -191,15 +218,15 @@ const TaskEventModal: React.FC<TaskEventModalProps> = ({
                 }
 
             } catch (error) {
-                console.error(`Error retrieving events from task ID "${newFCEvent.current["id"]}"`, error)
+                console.error(`Error retrieving events from task ID "${newFCEvent.current.id}"`, error)
             }
         } else {
             newFCEvent.current.extendedProps["username"] = taskOrEventData.latest_standalone_event.username
-            newFCEvent.current["id"] = taskOrEventData.latest_standalone_event.standaloneEventID
+            newFCEvent.current.id = taskOrEventData.latest_standalone_event.standaloneEventID
         }
 
-        const newEventTmp = JSON.parse(JSON.stringify(newFCEvent.current)); 
-        setEvents(prevEvents => [...prevEvents, ...taskEvents, newEventTmp]);
+        const newEventTmp = JSON.parse(JSON.stringify(newFCEvent.current)) as InputEvent; 
+        setEvents((prevEvents: InputEvent[]) => [...prevEvents, ...taskEvents as unknown as InputEvent[], newEventTmp]);
         setIsModalOpen(false);
 
         if (!isTaskMode) {
@@ -226,7 +253,7 @@ const TaskEventModal: React.FC<TaskEventModalProps> = ({
 
             {/* Shared Fields */}
             <TitleInput value={newFCEvent.current.title} onChange={handleInputChange} isTaskMode={isTaskMode} />
-            <StartDateInput value={newFCEvent.current.start} onChange={handleInputChange} isTaskMode={isTaskMode} />
+            <StartDateInput value={newFCEvent.current.start} onChange={handleInputChange} />
 
             {/* Specific Fields */}
             <div className="min-h-[150px]">

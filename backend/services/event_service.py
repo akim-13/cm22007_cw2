@@ -7,7 +7,9 @@ from tools import convertToJson
 
 def get_events(username: str, interval: tuple[datetime, datetime], db: Session) -> dict:
     """Return list of achievements for the given user in json format"""
-    user_events = db.query(User).filter(User.username == username).first().events
+    user_events = db.query(User).filter(User.username == username).first()
+    if user_events is None:
+        return {"events": []}
     
     events = [event for event in user_events if event.start > interval[0] and event.start < interval[1]]
 
