@@ -1,27 +1,28 @@
 import json
 
-from config import DATETIME_FORMAT
+from config import DATETIME_FORMAT, API_KEY
 from openai import OpenAI
 from datetime import datetime
 from database import Task, Event
 from sqlalchemy.orm import Session
 from tools import convertToJson
 from services.event_service import get_standalone_events, get_events, delete_events_from_task
-from dotenv import load_dotenv
 
-load_dotenv()
-client = OpenAI()
+client = OpenAI(
+  base_url="https://openrouter.ai/api/v1",
+  api_key=API_KEY,
+)
 
-# FIXME: Still works horribly.
+
 system_prompt = \
     f"""You are a calendar and task manager. Your job: break down tasks into events to be placed in a calendar. 
 The number of events is determined by the the complexity and length of the task. 
-Your response should be in JSON format, as a list of events.
+Your response should be in JSON only, no markdown, explanation or any other text.
 
 An event has 3 keys: ['taskID', 'start', 'end']. Here are their descriptions:
 'taskID': task id of this event (integer),
-'start': start datetime formatted in '{DATETIME_FORMAT}' (string),
-'end': end datetime formatted in '{DATETIME_FORMAT}' (string).
+'start': start datetime (string),
+'end': end datetime (string).
 
 The user will also provide a calendar, as a list of events, so you can avoid conflicts and space out events effectively.
 
@@ -39,13 +40,13 @@ calendar. Be more sensible, and think about how a real human would spread their
 workload throughout the day. Think about how the events would be spread out
 throughout multiple days as well, don't just clump everything in one day.
 
-!! Do NOT schedule any events between 11 PM and 6 AM !! This period is reserved
+Do NOT schedule any events between 11 PM and 6 AM !! This period is reserved
 only for sleep. IT IS STRICTLY FORBIDDEN TO SCHEDLUE ANYTHING BETWEEN THE TIMES
-23:00-6:00!!!!!!!!
+23:00-6:00
 
 EXTREMELY IMPORTANT: SCHEDULE THE EVENTS ON DIFFERENT DAYS 99% OF THE TIMES!!!!!
 ONLY SCHEDULE ON THE SAME DAY IF THERE IS VERY LITTLE TIME BEFORE THE
-DEADLINE!!!!!!!!!!!!!
+DEADLINE
 """
 
 
@@ -58,28 +59,32 @@ A priority of 2 is most important.
 This is my calendar (events only have start and end times to save space):
 {calendar}"""
 
-
 def breakdown_task_LLM(user_prompt):
     try:
         completion = client.chat.completions.create(
-            model="gpt-4o-mini",
+            model="meta-llama/llama-3.3-70b-instruct:free",
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
             ],
             response_format={"type": "json_object"},
         )
+        
         if not completion or not completion.choices:
                 print("Error: API response is empty.")
                 return {}  
-            
+        
+        print(completion)
         response = completion.choices[0].message.content
 
         if response is None:
                 print("Error: API response message content is None.")
                 return {}  
-
-        return json.loads(response)["events"]
+            
+        print(response)
+        response = json.loads(response)
+        
+        return response
 
     except Exception as e:
         print("API Error:", str(e))
@@ -92,6 +97,8 @@ def break_down_add_events(username: str, taskID: int, db: Session) -> dict:
     
     if task.events != []:
         delete_events_from_task(taskID, db)  # Delete all the events that are prexisting
+        
+    print("Doing some shit")
     
     standalone_events = get_standalone_events(username, (datetime.now(), task.deadline), db)["standalone_events"]
     
