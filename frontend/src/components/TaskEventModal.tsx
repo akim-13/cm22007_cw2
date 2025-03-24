@@ -14,17 +14,41 @@ import axios from "axios";
 
 const HOST="http://localhost:8000"
 
-
-interface TaskEventModalProps {
-    events: InputEvent[];
-    setEvents: (events: InputEvent[]) => void;
-    isModalOpen: boolean;
-    setIsModalOpen: (value: boolean) => void;
-    isTaskMode: boolean;
+interface ExtendedProps {
+  description: string;
+  duration: string;
+  priority: string;
+  isCompleted: boolean;
+  username?: string;
+  taskID?: string;
 }
 
+interface FCEvent {
+  id?: string;
+  title: string;
+  start: string;
+  end: string;
+  extendedProps: ExtendedProps;
+}
 
-const TaskEventModal: React.FC<any> = ({ 
+interface TaskEvent {
+  start: string;
+  end: string;
+  taskID: string;
+}
+
+interface TaskEventModalProps {
+  events: FCEvent[];
+  setEvents: (events: FCEvent[]) => void;
+  isModalOpen: boolean;
+  setIsModalOpen: (value: boolean) => void;
+  newFCEvent: React.MutableRefObject<FCEvent>;
+  initialExtendedProps: ExtendedProps;
+  isTaskMode: boolean;
+  setIsTaskMode: (value: boolean) => void;
+}
+
+const TaskEventModal: React.FC<TaskEventModalProps> = ({ 
     events, setEvents, 
     isModalOpen, setIsModalOpen, 
     newFCEvent, initialExtendedProps,
@@ -33,9 +57,7 @@ const TaskEventModal: React.FC<any> = ({
     const [, forceUpdate] = useState(0); 
 
     const handleInputChange = async (
-      event: React.ChangeEvent<HTMLInputElement> |
-      React.ChangeEvent<HTMLSelectElement> |
-      React.ChangeEvent<HTMLTextAreaElement>
+      event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
     ) => {
         const { name, type } = event.target;
         const value = type === "checkbox" ? (event.target as HTMLInputElement).checked : event.target.value;
@@ -43,7 +65,7 @@ const TaskEventModal: React.FC<any> = ({
         const isMainProp = name === "title" || name === "start" || name === "end"
 
         if (isMainProp) {
-            newFCEvent.current[name] = value;
+            newFCEvent.current[name as keyof Pick<FCEvent, "title" | "start" | "end">] = value as string;
         } else {
             newFCEvent.current.extendedProps = {
                 ...newFCEvent.current.extendedProps, 
@@ -53,45 +75,44 @@ const TaskEventModal: React.FC<any> = ({
 
         forceUpdate(x => x+1);
 
-        const id = newFCEvent.current["id"] ?? -1
+        const id = newFCEvent.current["id"] ?? -1;
         try {
             if (type === "checkbox" && (event.target as HTMLInputElement).checked) {
-                const response = await axios.put(`${HOST}/complete_task/${id}`);
-                console.log(`Task "${id}" completed successfully`)
+                await axios.put(`${HOST}/complete_task/${id}`);
+                console.log(`Task "${id}" completed successfully`);
             } else {
-                const response = await axios.put(`${HOST}/incomplete_task/${id}`);
-                console.log(`Task "${id}" uncompleted successfully`)
+                await axios.put(`${HOST}/incomplete_task/${id}`);
+                console.log(`Task "${id}" uncompleted successfully`);
             }
         } catch (error) {
-            console.error("Error completing a task", error)
+            console.error("Error completing a task", error);
         }
     };
 
-    
     const handleDelete = async () => {
-        const currentFCEvent = newFCEvent.current
+        const currentFCEvent = newFCEvent.current;
         if (!currentFCEvent.id) {
-            console.log("Nothing to delete")
-            return
+            console.log("Nothing to delete");
+            return;
         }
 
         try {
             if (isTaskMode) {
-                const events_response = await axios.delete(`${HOST}/delete_events_from_task/${currentFCEvent.id}`)
-                console.log(`Events of task "${currentFCEvent.id}" deleted successfully.`)
-                const task_response = await axios.delete(`${HOST}/delete_task/${currentFCEvent.id}`)
-                console.log(`Task "${currentFCEvent.id}" deleted successfully.`)
+                await axios.delete(`${HOST}/delete_events_from_task/${currentFCEvent.id}`);
+                console.log(`Events of task "${currentFCEvent.id}" deleted successfully.`);
+                await axios.delete(`${HOST}/delete_task/${currentFCEvent.id}`);
+                console.log(`Task "${currentFCEvent.id}" deleted successfully.`);
             } else {
-                const response = await axios.delete(`${HOST}/delete_standalone_event/${currentFCEvent.id}`)
-                console.log(`Event "${currentFCEvent.id}" deleted successfully.`)
+                await axios.delete(`${HOST}/delete_standalone_event/${currentFCEvent.id}`);
+                console.log(`Event "${currentFCEvent.id}" deleted successfully.`);
             }
         } catch (e) {
-            console.error("Error deleteing task or event", e)
+            console.error("Error deleting task or event", e);
         }
 
-        setIsModalOpen(false)
-        window.location.reload()
-    }
+        setIsModalOpen(false);
+        window.location.reload();
+    };
 
     const getFormData = () => {
         const currentFCEvent = newFCEvent.current;
@@ -111,33 +132,30 @@ const TaskEventModal: React.FC<any> = ({
         }
 
         return formData;
-    }
+    };
 
-    const sendAddRequest = async (formData: formData) => {
-        try {
-            const addOperation = isTaskMode ? "add_task" : "add_standalone_event"
-            console.warn([...formData.entries()]);
-            const response = await axios.post(`${HOST}/${addOperation}`, formData );
-            console.log(`Add request ${addOperation} sent successfully:`)
-            for (const pair of formData.entries()) { console.log(`${pair[0]}: ${pair[1]}`); }
-        } catch (error) {
-            console.error(`Error performing ${operation}:`, error);
-        }
-    }
+    const sendAddRequest = async (formData: FormData) => {
+        const addOperation = isTaskMode ? "add_task" : "add_standalone_event";
+        console.warn([...formData.entries()]);
+        const response = await axios.post(`${HOST}/${addOperation}`, formData);
+        console.log(`Add request ${addOperation} sent successfully:`);
+        for (const pair of formData.entries()) { console.log(`${pair[0]}: ${pair[1]}`); }
+        return response;
+    };
 
     const fetchTasksOrEventsData = async () => {
+        const getOperation = isTaskMode ? "get_latest_user_task" : "get_latest_standalone_event";
+        const username = "joe";
         try {
-            const getOperation = isTaskMode ? "get_latest_user_task" : "get_latest_standalone_event"
-            const username = "joe"
-            const response = await axios.get(`${HOST}/${getOperation}/${username}`)
-            console.log(`Fetch request ${getOperation} successful:`)
-            console.log(response.data)
-            return response.data
+            const response = await axios.get(`${HOST}/${getOperation}/${username}`);
+            console.log(`Fetch request ${getOperation} successful:`);
+            console.log(response.data);
+            return response.data;
         } catch (error) {
             console.error(`Error performing ${getOperation}:`, error);
-            return null
+            return null;
         }
-    }
+    };
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -145,38 +163,36 @@ const TaskEventModal: React.FC<any> = ({
         const formData = getFormData();
 
         if (newFCEvent.current.id) {
-            // TODO: edit task/event.
-            console.log("Nothing yet but should be edited.")
+            console.log("Nothing yet but should be edited.");
             setIsModalOpen(false);
 
-            // "Comleted" check mark isn't updated visually unless pulled from backend.
             if (isTaskMode) {
-                window.location.reload()
+                window.location.reload();
             }
-            return
+            return;
         }
 
         await sendAddRequest(formData);
         const taskOrEventData = await fetchTasksOrEventsData();
 
         if (taskOrEventData === null) {
-            alert("Sorry, something went wrong.")
-            console.error("Something went wrong when adding a task or an event. No changes have been made.")
-            return
+            alert("Sorry, something went wrong.");
+            console.error("Something went wrong when adding a task or an event. No changes have been made.");
+            return;
         }
 
-        var taskEvents = [];
+        const taskEvents: FCEvent[] = [];
 
         if (isTaskMode) {
-            newFCEvent.current.extendedProps["username"] = taskOrEventData.latest_task.username
-            newFCEvent.current["id"] = taskOrEventData.latest_task.taskID
+            newFCEvent.current.extendedProps.username = taskOrEventData.latest_task.username;
+            newFCEvent.current.id = taskOrEventData.latest_task.taskID;
             try {
-                const response = await axios.put(`${HOST}/breakdown_task/${newFCEvent.current["id"]}`)
+                const response = await axios.put(`${HOST}/breakdown_task/${newFCEvent.current.id}`);
 
                 if (response.data && Array.isArray(response.data.events_added)) {
-                    response.data.events_added.forEach(event => {
-                        var curTaskEvent = { 
-                            title: newFCEvent.current["title"],
+                    response.data.events_added.forEach((event: TaskEvent) => {
+                        const curTaskEvent: FCEvent = { 
+                            title: newFCEvent.current.title,
                             start: event.start, 
                             end: event.end, 
                             extendedProps: {
@@ -192,19 +208,19 @@ const TaskEventModal: React.FC<any> = ({
                 }
 
             } catch (error) {
-                console.error(`Error retrieving events from task ID "${newFCEvent.current["id"]}"`, error)
+                console.error(`Error retrieving events from task ID "${newFCEvent.current.id}"`, error);
             }
         } else {
-            newFCEvent.current.extendedProps["username"] = taskOrEventData.latest_standalone_event.username
-            newFCEvent.current["id"] = taskOrEventData.latest_standalone_event.standaloneEventID
+            newFCEvent.current.extendedProps.username = taskOrEventData.latest_standalone_event.username;
+            newFCEvent.current.id = taskOrEventData.latest_standalone_event.standaloneEventID;
         }
 
-        const newEventTmp = JSON.parse(JSON.stringify(newFCEvent.current)); 
-        setEvents(prevEvents => [...prevEvents, ...taskEvents, newEventTmp]);
+        const newEventTmp: FCEvent = JSON.parse(JSON.stringify(newFCEvent.current)); 
+        setEvents([...events, ...taskEvents, newEventTmp]);
         setIsModalOpen(false);
 
         if (!isTaskMode) {
-            window.location.reload()
+            window.location.reload();
         }
     };
 
@@ -223,11 +239,11 @@ const TaskEventModal: React.FC<any> = ({
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="mt-4 flex-1 flex flex-col justify-between">
+          <form role="form" onSubmit={handleSubmit} className="mt-4 flex-1 flex flex-col justify-between">
 
             {/* Shared Fields */}
             <TitleInput value={newFCEvent.current.title} onChange={handleInputChange} isTaskMode={isTaskMode} />
-            <StartDateInput value={newFCEvent.current.start} onChange={handleInputChange} isTaskMode={isTaskMode} />
+            <StartDateInput value={newFCEvent.current.start} onChange={handleInputChange} />
 
             {/* Specific Fields */}
             <div className="min-h-[150px]">
@@ -238,39 +254,43 @@ const TaskEventModal: React.FC<any> = ({
                         <PrioritySelect value={newFCEvent.current.extendedProps.priority} onChange={handleInputChange} />
                         <DescriptionInput value={newFCEvent.current.extendedProps.description} onChange={handleInputChange} />
                         <CompletedCheckbox checked={newFCEvent.current.extendedProps.isCompleted} onChange={handleInputChange} />
-           
                     </>
                 ) : (
                     <>
                         {/* Event-Specific Fields */}
                         <EndDateInput value={newFCEvent.current.end} onChange={handleInputChange} />
                         <DescriptionInput value={newFCEvent.current.extendedProps.description} onChange={handleInputChange} />
-         
                     </>
                 )}
             </div>
 
             {/* Buttons */}
-            <div className="mt-4 flex justify-end space-x-2">
-
-              <button type="button" onClick={handleDelete} className="bg-red-500 text-white px-4 py-2 rounded">
-                {"Delete"}
-              </button>
-
-              <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded">
-                {"Submit"}
-              </button>
-
-              <button type="button" onClick={() => setIsModalOpen(false)} className="bg-gray-500 text-white px-4 py-2 rounded">
-                Cancel
-              </button>
+            <div className="flex justify-center space-x-2">
+                <button
+                    type="submit"
+                    className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+                >
+                    {newFCEvent.current.id ? "Update" : "Create"}
+                </button>
+                <button
+                    type="button"
+                    onClick={handleDelete}
+                    className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+                >
+                    Delete
+                </button>
+                <button
+                    type="button"
+                    onClick={() => setIsModalOpen(false)}
+                    className="px-4 py-2 bg-gray-300 text-black rounded-md hover:bg-gray-400"
+                >
+                    Cancel
+                </button>
             </div>
-
           </form>
-
         </div>
       </Dialog>
-    )
-}
+    );
+};
 
-export default TaskEventModal
+export default TaskEventModal;
