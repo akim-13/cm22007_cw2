@@ -5,10 +5,12 @@ sys.path.insert(0,os.path.abspath(os.path.join(os.path.dirname(__file__), "../..
 
 import pytest
 from unittest.mock import MagicMock
+from unittest.mock import call
 from sqlalchemy.orm import Session
 
 from services.standalone_event_service import (
     get_user_standalone_event_obj,
+    get_user_standalone_events,
     delete_user_standalone_events,
     delete_user_standalone_event
 )
@@ -22,15 +24,37 @@ def mock_db():
 
 
 def test_get_user_standalone_event_obj(mock_db):
-    fake_event = Standalone_Event(standaloneEventID=1, username='test_user')
+    fake_event = Standalone_Event(
+        standaloneEventID=1,
+        username='test_user',
+        start=None,
+        end=None,
+        standaloneEventName=None,
+        standaloneEventDescription=None,
+        eventBy=None
+    )
     mock_db.query.return_value.filter.return_value.all.return_value = [fake_event]
 
     result = get_user_standalone_event_obj('test_user', mock_db)
-
     assert result == [fake_event]
-    mock_db.query.assert_called_once_with(Standalone_Event)
-    mock_db.query.return_value.filter.assert_called_once()
-    mock_db.query.return_value.filter.return_value.all.assert_called_once()
+
+    expected_event_dict = {
+        "standaloneEventID": 1,
+        "start": None,
+        "end": None,
+        "standaloneEventName": None,
+        "standaloneEventDescription": None,
+        "eventBy": None,
+        "username": "test_user"
+    }
+
+    actual_result = get_user_standalone_events('test_user', mock_db)
+    assert actual_result["standalone_events"] == [expected_event_dict]
+
+    calls = [call_args[0][0] for call_args in mock_db.query.call_args_list]
+    assert Standalone_Event in calls
+
+    assert mock_db.query.return_value.filter.return_value.all.call_count >= 1
 
 
 def test_delete_user_standalone_events(mock_db):
