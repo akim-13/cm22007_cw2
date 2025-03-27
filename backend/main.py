@@ -138,6 +138,13 @@ def get_events_from_task(request: Request, taskID: int, db: Session = Depends(yi
     response = event_service.get_events_from_task(taskID, db)
     return JSONResponse(status_code = 200, content = response)
 
+@app.get("/get_events_from_user/{username}", response_class=JSONResponse)
+def get_events_from_task(request: Request, username: str, db: Session = Depends(yield_db)):
+    response = event_service.get_all_events(username, db)
+    print(response)
+    
+    return JSONResponse(status_code = 200, content = response)
+
 @app.delete("/delete_events_from_task/{taskID}", response_class=JSONResponse)
 def delete_events_from_task(request: Request, taskID: int, db: Session = Depends(yield_db)):
     response = event_service.delete_events_from_task(taskID, db)

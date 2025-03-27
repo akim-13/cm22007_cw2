@@ -15,9 +15,9 @@ client = OpenAI(
 
 
 system_prompt = \
-    f"""You are a calendar and task manager. Your job: break down tasks into events to be placed in a calendar. 
+    """You are a calendar and task manager. Your job: break down tasks into events to be placed in a calendar. 
 The number of events is determined by the the complexity and length of the task. 
-Your response should be in JSON only, no markdown, explanation or any other text.
+Your response should be in JSON only, no markdown, explanation or any other text. store it like this: {"events": [list of events here]}
 
 An event has 3 keys: ['taskID', 'start', 'end']. Here are their descriptions:
 'taskID': task id of this event (integer),
@@ -26,13 +26,8 @@ An event has 3 keys: ['taskID', 'start', 'end']. Here are their descriptions:
 
 The user will also provide a calendar, as a list of events, so you can avoid conflicts and space out events effectively.
 
-IMPORTANT: the length of each of these events (end-start) should be appropriately chosen to prevent overloading students with work. You receive the duration of the
-task in minutes, so you can use this to help determine the length of each event. Task should be splited into equal length events or around equal. It's better to have
-several events for 30 minutes rather than 1 event longer. Sum of events length should be equal to the duration of the task.
-
-One event CANNOT be scheduled immediately after another, there must be at least
-30 minutes between them. It does not mean that all of them have to be spaced out
-evently 30 minutes apart, it's just the minimum time that should be between them.
+IMPORTANT: the length of each of these events (end-start) should be appropriately chosen to prevent overloading students with work, about 30 to 120 minutes long. You receive the duration of the
+task in minutes, so you can use this to help determine the length of each event. Sum of events length should be equal to the duration of the task.
 
 Schedule events as if you are a real human, i.e. a real human would not schedule
 all events at 3 AM even though technically this time is available on the
@@ -43,10 +38,6 @@ throughout multiple days as well, don't just clump everything in one day.
 Do NOT schedule any events between 11 PM and 6 AM !! This period is reserved
 only for sleep. IT IS STRICTLY FORBIDDEN TO SCHEDLUE ANYTHING BETWEEN THE TIMES
 23:00-6:00
-
-EXTREMELY IMPORTANT: SCHEDULE THE EVENTS ON DIFFERENT DAYS 99% OF THE TIMES!!!!!
-ONLY SCHEDULE ON THE SAME DAY IF THERE IS VERY LITTLE TIME BEFORE THE
-DEADLINE
 """
 
 
@@ -104,9 +95,9 @@ def break_down_add_events(username: str, taskID: int, db: Session) -> dict:
     
     calendar = [{"start": event["start"], "end": event["end"]} for event in events]
     calendar.extend([{"start": s_event["start"], "end": s_event["end"]} for s_event in standalone_events])
-    new_events_json = breakdown_task_LLM(get_user_prompt(task, calendar))
+    new_events_json = breakdown_task_LLM(get_user_prompt(task, calendar))['events']
     
-    print("EVENTS: ", new_events_json)
+    print("EVENTS: ", new_events_json, type(new_events_json))
     
     new_events = [Event(taskID=v["taskID"], 
                         start=datetime.strptime(v["start"], DATETIME_FORMAT), 

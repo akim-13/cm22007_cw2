@@ -1,5 +1,5 @@
 DATABASE_URL = "sqlite:///./database.db"
-API_KEY = "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"
+API_KEY = "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"
 DATETIME_FORMAT = "%Y-%m-%dT%H:%M"
 
 # List of default achievements
