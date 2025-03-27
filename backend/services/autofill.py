@@ -71,7 +71,7 @@ def validateDatetime(string: str) -> Optional[datetime.datetime]:
 # If this code is changed then this will automatically invalidate the cache
 memory = Memory("cache")
 @memory.cache
-def runModel(description, iso, local, weekdayHelper):
+def runModel(description, iso, local, weekdayHelper): # pragma: no cover
     completion = client.beta.chat.completions.parse(
         model="gpt-4o-mini",
         messages=[
@@ -129,12 +129,13 @@ def gen(description: str, currentDate: datetime.datetime) -> Task | Event:
         weekdayHelper += f"{fmtOrdinal(newDate.day)} is {newDate.strftime('%A')}, "
     weekdayHelper = weekdayHelper[:-2]
 
-    print(weekdayHelper)
     out = runModel(description, iso, local, weekdayHelper)
-    print(out)
 
-    if out.taskOrEvent.type == "Event":
-        event_out = out.taskOrEvent
+    return parseOutput(out.taskOrEvent, currentDate)
+
+def parseOutput(taskOrEvent, currentDate):
+    if taskOrEvent.type == "Event":
+        event_out = taskOrEvent
         result = Event(
             type="Event",
             title=validateString(event_out.title),
@@ -148,12 +149,13 @@ def gen(description: str, currentDate: datetime.datetime) -> Task | Event:
             result.start = None
             result.end = None
         
-        # If the start is in the past, set it to None
+        # If the start is in the past, set both to None
         if result.start is not None and result.start < currentDate:
             result.start = None
+            result.end = None
         
     else:
-        task_out = out.taskOrEvent
+        task_out = taskOrEvent
         result = Task(
             type="Task",
             title=validateString(task_out.title),
@@ -172,7 +174,7 @@ def gen(description: str, currentDate: datetime.datetime) -> Task | Event:
 
     return result
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     description = input("Enter task: ")
     currentDate = datetime.datetime.now()
     task = gen(description, currentDate)
