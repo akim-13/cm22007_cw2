@@ -5,14 +5,15 @@ from tools import convertToJson
 import hashlib
 
 def get_user_points(username: str, db: Session):
-    user = db.query(User).filter(User.username == "joe").first()
+    user = db.query(User).filter(User.username == username).first()
     if user is None:
         return {"points": None}
     return {"points": user.currentPoints}
 
 def get_user_achievements(username: str, db: Session):
     user = db.query(User).filter(User.username == username).first()
-    
+    if user is None:
+        return {"achievements": None}
     achievement_ids = user.achievements
     achievements = [convertToJson(db.query(Achievements).filter(Achievements.achievementID == ID).first()) for ID in achievement_ids]
     
@@ -29,6 +30,8 @@ def create_user(username: str, password: str, db: Session):
     try:
         db.add(new_user)
         db.commit()
-        return {"success": False}
+        return {"success": True}
     except IntegrityError:
+        # Otherwise we have a duplicate user
+        db.rollback()
         return {"success": False}   
