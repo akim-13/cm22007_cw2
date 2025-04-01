@@ -11,7 +11,7 @@ npm install --legacy-peer-deps
 
 To set the OpenAI API key, run the following command in your terminal:
 ```
-export OPENAI_API_KEY="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"
+export OPENAI_API_KEY="your-api-key"
 ```
 ### Starting the Server
 
