@@ -44,32 +44,28 @@ interface StandaloneEvent {
 interface CalendarEvent {
     title: string;
     start: string;
-    end?: string;
-    extendedProps?: {
-        description?: string;
-        priority?: string;
-        duration?: string;
-        isCompleted?: boolean;
-    };
+    end: string;
 }
 
 const Calendar: React.FC<any> = ({ events, setIsModalOpen, newFCEvent, initialExtendedProps, setIsTaskMode }) => {
     const [isAchievementModalOpen, setIsAchievementModalOpen] = useState(false);
     const [backendEvents, setBackendEvents] = useState<StandaloneEvent[]>([]);
     const [taskEvents, setTaskEvents] = useState<TaskEvent[]>([]);
+    const [calendarEvents, setEvents] = useState<CalendarEvent[]>([]);
     const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
     const username = "joe"; 
     useEffect(() => {
         fetchEvents();
         fetchTasks();
+        fetchStandaloneEvents();
     }, []);
 
-    const fetchEvents = async () => {
+    const fetchStandaloneEvents = async () => {
         try {
             const standaloneEventsResponse = await axios.get(
                 `http://localhost:8000/get_standalone_events/${username}`
             );
-            const standaloneEvents = standaloneEventsResponse.data.standalone_events.map(
+            const standaloneEvents = standaloneEventsResponse.data.events.map(
                 (event: any) => ({
                     id: event.standaloneEventID,
                     title: event.standaloneEventName,
@@ -78,6 +74,25 @@ const Calendar: React.FC<any> = ({ events, setIsModalOpen, newFCEvent, initialEx
                 })
             );
             setBackendEvents([...standaloneEvents]);
+        } catch (error) {
+            console.error("Error fetching events:", error);
+        }
+    };
+
+    const fetchEvents = async () => {
+        try {
+            const eventsResponse = await axios.get(
+                `http://localhost:8000/get_events_from_user/${username}`
+            );
+            const events = eventsResponse.data.events.map(
+                (event: any) => ({
+                    id: event.eventID,
+                    title: event.title,
+                    start: event.start,
+                    end: event.end,
+                })
+            );
+            setEvents([...events]);
         } catch (error) {
             console.error("Error fetching events:", error);
         }
@@ -154,7 +169,7 @@ const Calendar: React.FC<any> = ({ events, setIsModalOpen, newFCEvent, initialEx
                 }}
 
                 events={[
-                    ...events.map((event: CalendarEvent) => ({
+                    ...calendarEvents.map((event: CalendarEvent) => ({
                         ...event,
                         color: "blue",  // Default color for newly added events
                     })),

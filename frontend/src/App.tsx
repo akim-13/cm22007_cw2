@@ -13,6 +13,7 @@ const App: React.FC = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false); // added from input_prompt
   const [isSignedIn, setIsSignedIn] = useState(false); // Authentication state
   const [tasks, setTasks] = useState<any[]>([]); // Store tasks fetched from the API
+  const [events, setEvents] = useState<any[]>([]); // Store events fetched from the API
   const initialExtendedProps = {
     username: "joe",
     taskID: undefined,
@@ -40,6 +41,16 @@ const App: React.FC = () => {
       }
     };
 
+    const fetchEvents = async () => {
+      try{
+        const eventResponse = await axios.get(`http://localhost:8000/get_events_from_user/${initialExtendedProps.username}`);
+        setEvents(eventResponse.data.events)
+      }
+      catch (error){
+        console.error(error);
+      }
+    };
+
     fetchTasks();
   }, [initialExtendedProps.username]); // Fetch tasks when the component mounts or when the username changes
 
@@ -59,17 +70,14 @@ const App: React.FC = () => {
             {tasks.length > 0 ? (
               tasks.map((task) => (
                 <TaskCard
-                  key={task.taskID} // Unique key for each task
+                  taskID={task.taskID} // Unique key for each task
                   title={task.title}
                   priority={task.priority === 0 ? "Low" : "High"} // Assuming priority is a number
-                  duration={`${task.duration} hours`}
+                  duration={`${task.duration} minutes`}
                   deadline={task.deadline}
                   description={task.description}
                   dropdown={true} // or false based on your needs
                   otherTasks={[
-                    "Set up database",
-                    "Create routes",
-                    "Implement security measures",
                   ]}
                 />
               ))
@@ -94,7 +102,8 @@ const App: React.FC = () => {
             )}
 
             <Calendar
-              events={tasks}
+              events={events}
+              tasks={tasks}
               setIsModalOpen={setIsModalOpen}
               newFCEvent={newFCEvent}
               initialExtendedProps={initialExtendedProps}
