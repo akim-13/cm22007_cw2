@@ -10,12 +10,14 @@ import requests
 from ics import Calendar
 from calendar_to_events import get_event  
 
+import warnings
+
 @pytest.fixture
 def valid_ics():
     """Returns a valid ICS file content"""
-    return "BEGIN:VCALENDAR\nPRODID:-//Test Calendar//EN\nBEGIN:VEVENT\nSUMMARY:Test Event\nDTSTART:20240306T100000Z\nDTEND:20240306T110000Z\nDESCRIPTION:Test Description\nEND:VEVENT\nEND:VCALENDAR"
+    return "BEGIN:VCALENDAR\nPRODID:-//Test Calendar//EN\nVERSION:2.0\nBEGIN:VEVENT\nSUMMARY:Test Event\nDTSTART:20240306T100000Z\nDTEND:20240306T110000Z\nDESCRIPTION:Test Description\nEND:VEVENT\nEND:VCALENDAR"
 
-
+@pytest.mark.filterwarnings("ignore:'maxsplit' is passed as positional argument")
 @patch("requests.get")
 def test_valid_ics_file(mock_get, valid_ics):
     """Test with a valid ICS file"""

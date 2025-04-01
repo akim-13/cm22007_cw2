@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
+import axios from "axios"; // Make sure axios is imported
 
 interface TaskCardProps {
+  taskID: number,
   title: string;
   priority: 'high' | 'medium' | 'low';
   duration: string;
@@ -11,6 +13,7 @@ interface TaskCardProps {
 }
 
 const TaskCard: React.FC<TaskCardProps> = ({
+  taskID,
   title,
   priority,
   duration,
@@ -22,7 +25,17 @@ const TaskCard: React.FC<TaskCardProps> = ({
   const [isChecked, setIsChecked] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const handleCheckboxChange = () => {
+  const handleCheckboxChange = async () => {
+    if (!isChecked){
+      console.log(title)
+      console.log(taskID)
+      try{
+        await axios.put<{ message: string }>(`http://127.0.0.1:8000/complete_task/${taskID}`);
+      }
+      catch (error) {
+      console.error("Error fetching tasks:", error);
+      }
+    }
     setIsChecked(!isChecked);
   };
 

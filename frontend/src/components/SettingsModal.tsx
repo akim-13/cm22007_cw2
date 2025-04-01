@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface SettingsModalProps {
   open: boolean;
@@ -8,34 +8,39 @@ interface SettingsModalProps {
 export default function SettingsModal({ open, onClose }: SettingsModalProps) {
   const [calendarUrl, setCalendarUrl] = useState("");
   const [theme, setTheme] = useState("light");
-    const [eventColor, setEventColor] = useState("#ff6384"); // Red for backend events
-    const [taskColor, setTaskColor] = useState("#90ee90"); // Light green for tasks
-
+  const [eventColor, setEventColor] = useState(() => {
+    return localStorage.getItem('eventColor') || "#ff6384";
+  });
+  const [taskColor, setTaskColor] = useState(() => {
+    return localStorage.getItem('taskColor') || "#90ee90";
+  });
 
   const handleConfirm = async () => {
-    if (!calendarUrl) {
-      alert("Please enter a valid calendar URL");
-      return;
-    }
+    // Save color settings
+    localStorage.setItem('eventColor', eventColor);
+    localStorage.setItem('taskColor', taskColor);
 
-    try {
-      const response = await fetch("http://localhost:8000/add_calendar/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ ics_url: calendarUrl }),
-      });
+    // Handle calendar URL
+    if (calendarUrl) {
+      try {
+        const response = await fetch("http://localhost:8000/add_calendar/", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ ics_url: calendarUrl }),
+        });
 
-      if (response.ok) {
-        alert("Calendar successfully added!");
-      } else {
-        const errorData = await response.json();
-        alert(`Error: ${errorData.detail || "Failed to add calendar"}`);
+        if (response.ok) {
+          alert("Calendar successfully added!");
+        } else {
+          const errorData = await response.json();
+          alert(`Error: ${errorData.detail || "Failed to add calendar"}`);
+        }
+      } catch (error) {
+        console.error("Error adding calendar:", error);
+        alert("An error occurred. Please try again.");
       }
-    } catch (error) {
-      console.error("Error adding calendar:", error);
-      alert("An error occurred. Please try again.");
     }
 
     onClose();
@@ -44,7 +49,7 @@ export default function SettingsModal({ open, onClose }: SettingsModalProps) {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-[10000]">
+    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-[10000]" data-testid="modal-overlay">
       <div className="themed-bg p-6 rounded-lg shadow-lg w-96">
         <h2 className="text-center text-lg font-semibold mb-4">Settings</h2>
 
@@ -70,20 +75,22 @@ export default function SettingsModal({ open, onClose }: SettingsModalProps) {
         </select>
 
         {/* Event Color Picker */}
-        <label className="block text-sm font-medium mb-1">Event Colour:</label>
+        <label htmlFor="event-color" className="block text-sm font-medium mb-1">Event Colour:</label>
         <input
+          id="event-color"
           type="color"
           value={eventColor}
-          onChange={(e) => setEventColour(e.target.value)}
+          onChange={(e) => setEventColor(e.target.value)}
           className="w-full h-10 mb-4 border rounded-md cursor-pointer"
         />
 
         {/* Task Color Picker */}
-        <label className="block text-sm font-medium mb-1">Task Colour:</label>
+        <label htmlFor="task-color" className="block text-sm font-medium mb-1">Task Colour:</label>
         <input
+          id="task-color"
           type="color"
           value={taskColor}
-          onChange={(e) => setTaskColour(e.target.value)}
+          onChange={(e) => setTaskColor(e.target.value)}
           className="w-full h-10 mb-4 border rounded-md cursor-pointer"
         />
 
@@ -93,7 +100,7 @@ export default function SettingsModal({ open, onClose }: SettingsModalProps) {
             onClick={handleConfirm}
             className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
           >
-            Confirm
+            Save
           </button>
           <button
             onClick={onClose}

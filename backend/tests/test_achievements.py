@@ -63,7 +63,7 @@ def test_achievements(db_session):
         .all()
     )
 
-    assert len(user_achievements) == 1
+    assert len(get_from_user(test_user.username, db_session)["achievements"]) == 1  
     assert user_achievements[0].title == "Beginner"
 
     

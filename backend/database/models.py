@@ -18,9 +18,9 @@ class User(ORM_Base):
     # User.tasks will give back an array of all the tasks a user (This is done through inner join automatically)
     # user = db.query(User).first()
     # print(user.tasks)
-    tasks = relationship("Task", back_populates="user")  # python-side ORM Relationship
-    standalone_events = relationship("Standalone_Event", back_populates="user")
-    achievements = relationship("Achievements_to_User", back_populates="user")
+    tasks = relationship("Task", back_populates="user", cascade='all, delete')  # python-side ORM Relationship
+    standalone_events = relationship("Standalone_Event", back_populates="user", cascade='all, delete')
+    achievements = relationship("Achievements_to_User", back_populates="user", cascade='all, delete')
     
     @property
     def events(self):
@@ -43,7 +43,7 @@ class Task(ORM_Base):
     username = Column(String, ForeignKey("User.username"), nullable=False)
     
     user = relationship("User", back_populates="tasks")
-    events = relationship("Event", back_populates="task")
+    events = relationship("Event", back_populates="task", cascade='all, delete')
     
 
 
@@ -90,9 +90,7 @@ class Achievements(ORM_Base):
     requiredPoints = Column(Integer, nullable=False)
     title = Column(String, nullable=False)
     description = Column(String, nullable=False)
-    image_path = Column(String)
-    
-    
+    image_path = Column(String)    
 
 class Achievements_to_User(ORM_Base):
     __tablename__ = "Achievements_to_User"

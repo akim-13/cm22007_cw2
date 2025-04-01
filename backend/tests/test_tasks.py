@@ -128,6 +128,7 @@ def test_task_completion(db_session):
 
 # ---------------------- TASK SCHEDULER (some event services as well) ----------------------
 
+@pytest.mark.external_api
 def test_task_scheduler(db_session):
     """After breaking down a task, check whether events generated are valid"""
     task1, task2 = add_tasks(db_session)

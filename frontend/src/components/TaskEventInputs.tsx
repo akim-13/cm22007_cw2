@@ -44,11 +44,8 @@ export const TitleInput: React.FC<InputProps & { isTaskMode: boolean }> = ({ val
 export const StartDateInput: React.FC<InputProps> = ({ value, onChange, isTaskMode }) => (
   <input
     name="start"
-    type="text"
+    type={value ? "datetime-local" : "text"}
     onFocus={(e) => (e.target.type = "datetime-local")}
-    onBlur={(e) => {
-      e.target.type = "text";
-    }}
     placeholder={isTaskMode ? "Deadline" : "Start Date"}
     value={value}
     onChange={onChange}
@@ -60,11 +57,8 @@ export const StartDateInput: React.FC<InputProps> = ({ value, onChange, isTaskMo
 export const EndDateInput: React.FC<InputProps> = ({ value, onChange }) => (
   <input
     name="end"
-    type="text"
+    type={value ? "datetime-local" : "text"}
     onFocus={(e) => (e.target.type = "datetime-local")}
-    onBlur={(e) => {
-      e.target.type = "text";
-    }}
     placeholder="End Date"
     value={value}
     onChange={onChange}

@@ -1,9 +1,27 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Check, Plus } from "lucide-react";
 
-export default function InputPrompt({ setIsModalOpen, newFCEvent, initialExtendedProps }) {
+interface InputPromptProps {
+  setIsModalOpen: (isOpen: boolean) => void;
+  newFCEvent: React.MutableRefObject<any>;
+  initialExtendedProps: Record<string, any>;
+  setIsTaskMode: (isTask: boolean) => void;
+}
+
+interface AIResponse {
+  title: string;
+  description: string;
+  type: "Task" | "Event";
+  deadline?: string;
+  durationMinutes?: string;
+  priority?: number;
+  start?: string;
+  end?: string;
+}
+
+export default function InputPrompt({ setIsModalOpen, newFCEvent, initialExtendedProps, setIsTaskMode }: InputPromptProps) {
   const [input, setInput] = useState("");
-  const [response, setResponse] = useState(null);
+  const [response, setResponse] = useState<AIResponse | null>(null);
 
   const handleSubmit = async () => {
     if (!input.trim()) return;
@@ -26,9 +44,27 @@ export default function InputPrompt({ setIsModalOpen, newFCEvent, initialExtende
         throw new Error("Failed to fetch data");
       }
 
-      const data = await res.json();
+      const data: AIResponse = await res.json();
       setResponse(data);
       console.log("AI Response:", data);
+
+      newFCEvent.current = { extendedProps: { ...initialExtendedProps } };
+      const cur = newFCEvent.current;
+      cur["title"] = data.title;
+      cur.extendedProps["description"] = data.description;
+
+      if (data.type === "Task") {
+        setIsTaskMode(true);
+        cur["start"] = data.deadline ?? "";
+        cur.extendedProps["duration"] = data.durationMinutes ?? "";
+        cur.extendedProps["priority"] = data?.priority ?? 0;
+      } else {
+        setIsTaskMode(false);
+        cur["start"] = data.start ?? "";
+        cur["end"] = data.end ?? "";
+      }
+
+      setIsModalOpen(true);
     } catch (error) {
       console.error("Error:", error);
     }
@@ -36,10 +72,10 @@ export default function InputPrompt({ setIsModalOpen, newFCEvent, initialExtende
     setInput("");
   };
 
-    const handleCreateEventClick = () => {
-        newFCEvent.current = { extendedProps: { ...initialExtendedProps } };
-        setIsModalOpen(true);
-    };
+  const handleCreateEventClick = () => {
+    newFCEvent.current = { extendedProps: { ...initialExtendedProps } };
+    setIsModalOpen(true);
+  };
 
   return (
     <div className="flex flex-col w-full">
@@ -51,6 +87,7 @@ export default function InputPrompt({ setIsModalOpen, newFCEvent, initialExtende
             placeholder="Type your prompt..."
             value={input}
             onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
           />
           <button
             className="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 rounded-full hover:bg-gray-200"
@@ -63,16 +100,6 @@ export default function InputPrompt({ setIsModalOpen, newFCEvent, initialExtende
           <Plus className="w-6 h-6" />
         </button>
       </div>
-
-      {/* Display AI-generated response */}
-      {response && (
-        <div className="mt-4 p-4 border rounded-lg bg-gray-100">
-          <h3 className="text-lg font-semibold">AI Suggestions:</h3>
-          <pre className="whitespace-pre-wrap">
-            {JSON.stringify(response, null, 2)}
-          </pre>
-        </div>
-      )}
     </div>
   );
 }
