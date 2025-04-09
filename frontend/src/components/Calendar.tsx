@@ -23,19 +23,19 @@ const formatDate = (date: Date): string => {
 };
 
 interface TaskEvent {
-    id: integer;
+    id: string;
     title: string;
     start: string;
     extendedProps: {
         description: string;
-        priority: string;
-        duration: string;
+        priority: number;
+        duration: number;
         isCompleted: boolean;
     };
 }
 
 interface StandaloneEvent {
-    id: integer;
+    id: string;
     title: string;
     start: string;
     end: string;
@@ -65,9 +65,9 @@ const Calendar: React.FC<any> = ({ events, setIsModalOpen, newFCEvent, initialEx
             const standaloneEventsResponse = await axios.get(
                 `http://localhost:8000/get_standalone_events/${username}`
             );
-            const standaloneEvents = standaloneEventsResponse.data.events.map(
+            const standaloneEvents = standaloneEventsResponse.data.standalone_events.map(
                 (event: any) => ({
-                    id: event.standaloneEventID,
+                    id: "standalone-" + event.standaloneEventID.toString(),
                     title: event.standaloneEventName,
                     start: event.start,
                     end: event.end,
@@ -86,7 +86,7 @@ const Calendar: React.FC<any> = ({ events, setIsModalOpen, newFCEvent, initialEx
             );
             const events = eventsResponse.data.events.map(
                 (event: any) => ({
-                    id: event.eventID,
+                    id: "ev-" + event.eventID.toString(),
                     title: event.title,
                     start: event.start,
                     end: event.end,
@@ -103,7 +103,7 @@ const Calendar: React.FC<any> = ({ events, setIsModalOpen, newFCEvent, initialEx
             const taskResponse = await axios.get(`http://localhost:8000/get_user_tasks/${username}`);
             console.log("Tasks fetched from API:", taskResponse.data.tasks); 
             const tasks = taskResponse.data.tasks.map((task: any) => ({
-                id: task.taskID,
+                id: "taskev-" + task.taskID.toString(),
                 title: task.title,
                 start: new Date(task.deadline).toISOString(),
                 extendedProps: {
@@ -142,6 +142,23 @@ const Calendar: React.FC<any> = ({ events, setIsModalOpen, newFCEvent, initialEx
         console.warn(JSON.parse(JSON.stringify(newFCEvent.current)))
     };
 
+    let processedEvents = [
+        ...calendarEvents.map((event: CalendarEvent) => ({
+            ...event,
+            color: "blue",  // Default color for newly added events
+        })),
+        ...taskEvents.map(task => ({
+            ...task,
+            color: "rgb(144,238,144)",  // Light green for tasks
+            textColor: "black",
+        })),
+        ...backendEvents.map(event => ({
+            ...event,
+            color: "rgb(255,99,132)",  // Red for backend events
+            textColor: "black",
+        })),
+    ]
+
     return (
         <>
             <FullCalendar
@@ -168,22 +185,7 @@ const Calendar: React.FC<any> = ({ events, setIsModalOpen, newFCEvent, initialEx
                     },
                 }}
 
-                events={[
-                    ...calendarEvents.map((event: CalendarEvent) => ({
-                        ...event,
-                        color: "blue",  // Default color for newly added events
-                    })),
-                    ...taskEvents.map(task => ({
-                        ...task,
-                        color: "rgb(144,238,144)",  // Light green for tasks
-                        textColor: "black",
-                    })),
-                    ...backendEvents.map(event => ({
-                        ...event,
-                        color: "rgb(255,99,132)",  // Red for backend events
-                        textColor: "black",
-                    })),
-                ]}
+                events={processedEvents}
 
                 eventClick={handleEventClick}
             />
