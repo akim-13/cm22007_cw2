@@ -95,7 +95,7 @@ def get_latest_standalone_event(request: Request, username: str, db: Session = D
 ## ---------- TASK RELATED STUFF ----------
 
 @app.post("/add_task", response_class=JSONResponse)
-def add(request: Request, title: str = Form(...), description: str = Form(...), duration: int = Form(...),priority: int = Form(...), deadline: datetime = Form(...), db: Session = Depends(yield_db)): # pragma: no cover
+def add_task(request: Request, title: str = Form(...), description: str = Form(...), duration: int = Form(...),priority: int = Form(...), deadline: datetime = Form(...), db: Session = Depends(yield_db)): # pragma: no cover
     if priority not in [0, 1, 2]:
         raise HTTPException(status_code=400, detail="Invalid priority value. Must be 0 (low), 1 (medium), or 2 (high).")
     
@@ -105,8 +105,14 @@ def add(request: Request, title: str = Form(...), description: str = Form(...), 
     return  JSONResponse(status_code = 200, content = {"success": True})
 
 @app.post("/edit_task", response_class=JSONResponse)
-def add(request: Request, taskID: int, task_properties: dict, db: Session = Depends(yield_db)):# pragma: no cover
-    response = tasks_service.edit_task(taskID,task_properties, db) 
+def edit_task(request: Request, editID: int = Form(...), title: str = Form(...), description: str = Form(...), duration: int = Form(...), priority: int = Form(...), deadline: datetime = Form(...), db: Session = Depends(yield_db)): # pragma: no cover
+    response = tasks_service.edit_task(editID, {
+        "title": title,
+        "description": description,
+        "duration": duration,
+        "priority": priority,
+        "deadline": deadline
+    }, db)
     return JSONResponse(status_code = 200, content = response)
 
 @app.delete("/delete_task/{taskID}", response_class=JSONResponse)
@@ -139,7 +145,7 @@ def get_events_from_task(request: Request, taskID: int, db: Session = Depends(yi
     return JSONResponse(status_code = 200, content = response)
 
 @app.get("/get_events_from_user/{username}", response_class=JSONResponse)
-def get_events_from_task(request: Request, username: str, db: Session = Depends(yield_db)):
+def get_events_from_user(request: Request, username: str, db: Session = Depends(yield_db)):
     response = event_service.get_all_events(username, db)
     print(response)
     
@@ -151,9 +157,9 @@ def delete_events_from_task(request: Request, taskID: int, db: Session = Depends
     return JSONResponse(status_code = 200, content = response)
 
 
-@app.put("/edit_event/{eventID}", response_class=JSONResponse)
-def complete_task(request: Request, eventID: int, start: datetime, end: datetime, db: Session = Depends(yield_db)):
-    response = event_service.edit_event(eventID, start, end, db)
+@app.post("/edit_task_event", response_class=JSONResponse)
+def edit_event(request: Request, editID: int = Form(), start: datetime = Form(), end: datetime = Form(), db: Session = Depends(yield_db)):
+    response = event_service.edit_event(editID, start, end, db)
     return JSONResponse(status_code = 200, content = response)
 
 
@@ -180,6 +186,10 @@ def get_standalone_events(request: Request, username: str, db: Session = Depends
     response = standalone_event_service.get_user_standalone_events(username, db)
     return JSONResponse(status_code = 200, content = response)
 
+@app.post("/edit_standalone_event", response_class=JSONResponse)
+def edit_standalone_event(request: Request, editID: int = Form(), standaloneEventName: str = Form(), standaloneEventDescription: str = Form(), start: datetime = Form(), end: datetime = Form(), db: Session = Depends(yield_db)): # pragma: no cover
+    response = standalone_event_service.edit_standalone_event(editID, standaloneEventName, standaloneEventDescription, start, end, db)
+    return JSONResponse(status_code = 200, content = response)
 
 @app.get("/check_achievements")
 def check_achievements(db: Session = Depends(yield_db)):  # pragma: no cover

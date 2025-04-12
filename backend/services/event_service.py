@@ -53,6 +53,18 @@ def get_latest_standalone_event(username: str, db: Session) -> dict:
     else:
         return {"latest_standalone_event": None}
 
+def edit_standalone_event(standaloneEventID: int, standaloneEventName: str, standaloneEventDescription: str, start: datetime, end: datetime, db: Session):
+    standalone_event = db.query(Standalone_Event).filter(Standalone_Event.standaloneEventID == standaloneEventID).first()
+    if standalone_event is None:
+        return {"success": False, "message": "Event not found"}
+    
+    standalone_event.standaloneEventName = standaloneEventName
+    standalone_event.standaloneEventDescription = standaloneEventDescription
+    standalone_event.start = start
+    standalone_event.end = end
+    db.commit()
+    
+    return {"success": True}
 
 def get_events_from_task(taskID: int, db: Session):
     events = db.query(Task).filter(Task.taskID == taskID).first().events

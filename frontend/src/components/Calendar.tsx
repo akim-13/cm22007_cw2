@@ -6,6 +6,92 @@ import interactionPlugin from "@fullcalendar/interaction";
 import axios from "axios";
 import AchievementModal from "./AchievementModal";
 import SettingsModal from "./SettingsModal";
+import { StandaloneEvent, Task, TaskEvent } from "../App";
+
+// interface Task {
+//     id: string;
+//     title: string;
+//     start: string;
+//     extendedProps: {
+//         description: string;
+//         priority: number;
+//         duration: number;
+//         isCompleted: boolean;
+//     };
+// }
+
+// interface StandaloneEvent {
+//     id: string;
+//     title: string;
+//     start: string;
+//     end: string;
+// }
+
+// interface CalendarEvent {
+//     title: string;
+//     start: string;
+//     end: string;
+// }
+
+// // TODO: Move these conversions to Calendar component
+// const fetchStandaloneEvents = async () => {
+//     try {
+//         const standaloneEventsResponse = await axios.get(
+//             `http://localhost:8000/get_standalone_events/${username}`
+//         );
+//         const standaloneEvents = standaloneEventsResponse.data.standalone_events.map(
+//             (event: any) => ({
+//                 id: "standalone-" + event.standaloneEventID.toString(),
+//                 title: event.standaloneEventName,
+//                 start: event.start,
+//                 end: event.end,
+//             })
+//         );
+//         setStandaloneEvents([...standaloneEvents]);
+//     } catch (error) {
+//         console.error("Error fetching events:", error);
+//     }
+// };
+
+// const fetchTaskEvents = async () => {
+//     try {
+//         const eventsResponse = await axios.get(
+//             `http://localhost:8000/get_events_from_user/${username}`
+//         );
+//         const events = eventsResponse.data.events.map(
+//             (event: any) => ({
+//                 id: "ev-" + event.eventID.toString(),
+//                 title: event.title,
+//                 start: event.start,
+//                 end: event.end,
+//             })
+//         );
+//         setTaskEvents([...events]);
+//     } catch (error) {
+//         console.error("Error fetching events:", error);
+//     }
+// };
+
+// const fetchTasks = async () => {
+//     try {
+//         const taskResponse = await axios.get(`http://localhost:8000/get_user_tasks/${username}`);
+//         console.log("Tasks fetched from API:", taskResponse.data.tasks); 
+//         const tasks = taskResponse.data.tasks.map((task: any) => ({
+//             id: "taskev-" + task.taskID.toString(),
+//             title: task.title,
+//             start: new Date(task.deadline).toISOString(),
+//             extendedProps: {
+//                 description: task.description,
+//                 priority: task.priority,
+//                 duration: task.duration,
+//                 isCompleted: task.isCompleted,
+//             },
+//         }));
+//         setTasks(tasks);
+//     } catch (error) {
+//         console.error("Error fetching tasks:", error);
+//     }
+// };
 
 const formatDate = (date: Date): string => {
     // return date.toLocaleString("en-US", {
@@ -22,102 +108,10 @@ const formatDate = (date: Date): string => {
     return adjusted.toISOString().slice(0, 16);
 };
 
-interface TaskEvent {
-    id: string;
-    title: string;
-    start: string;
-    extendedProps: {
-        description: string;
-        priority: number;
-        duration: number;
-        isCompleted: boolean;
-    };
-}
-
-interface StandaloneEvent {
-    id: string;
-    title: string;
-    start: string;
-    end: string;
-}
-
-interface CalendarEvent {
-    title: string;
-    start: string;
-    end: string;
-}
-
-const Calendar: React.FC<any> = ({ events, setIsModalOpen, newFCEvent, initialExtendedProps, setIsTaskMode }) => {
+const Calendar: React.FC<any> = ({ standaloneEvents, taskEvents, tasks, setIsModalOpen, setModalTypeLocked, newFCEvent, initialExtendedProps, setModalType }) => {
     const [isAchievementModalOpen, setIsAchievementModalOpen] = useState(false);
-    const [backendEvents, setBackendEvents] = useState<StandaloneEvent[]>([]);
-    const [taskEvents, setTaskEvents] = useState<TaskEvent[]>([]);
-    const [calendarEvents, setEvents] = useState<CalendarEvent[]>([]);
     const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
     const username = "joe"; 
-    useEffect(() => {
-        fetchEvents();
-        fetchTasks();
-        fetchStandaloneEvents();
-    }, []);
-
-    const fetchStandaloneEvents = async () => {
-        try {
-            const standaloneEventsResponse = await axios.get(
-                `http://localhost:8000/get_standalone_events/${username}`
-            );
-            const standaloneEvents = standaloneEventsResponse.data.standalone_events.map(
-                (event: any) => ({
-                    id: "standalone-" + event.standaloneEventID.toString(),
-                    title: event.standaloneEventName,
-                    start: event.start,
-                    end: event.end,
-                })
-            );
-            setBackendEvents([...standaloneEvents]);
-        } catch (error) {
-            console.error("Error fetching events:", error);
-        }
-    };
-
-    const fetchEvents = async () => {
-        try {
-            const eventsResponse = await axios.get(
-                `http://localhost:8000/get_events_from_user/${username}`
-            );
-            const events = eventsResponse.data.events.map(
-                (event: any) => ({
-                    id: "ev-" + event.eventID.toString(),
-                    title: event.title,
-                    start: event.start,
-                    end: event.end,
-                })
-            );
-            setEvents([...events]);
-        } catch (error) {
-            console.error("Error fetching events:", error);
-        }
-    };
-
-    const fetchTasks = async () => {
-        try {
-            const taskResponse = await axios.get(`http://localhost:8000/get_user_tasks/${username}`);
-            console.log("Tasks fetched from API:", taskResponse.data.tasks); 
-            const tasks = taskResponse.data.tasks.map((task: any) => ({
-                id: "taskev-" + task.taskID.toString(),
-                title: task.title,
-                start: new Date(task.deadline).toISOString(),
-                extendedProps: {
-                    description: task.description,
-                    priority: task.priority,
-                    duration: task.duration,
-                    isCompleted: task.isCompleted,
-                },
-            }));
-            setTaskEvents(tasks);
-        } catch (error) {
-            console.error("Error fetching tasks:", error);
-        }
-    };
 
     const handleEventClick = (info: any) => {
         const startTime = info.event.start ? formatDate(info.event.start) : "";
@@ -137,24 +131,48 @@ const Calendar: React.FC<any> = ({ events, setIsModalOpen, newFCEvent, initialEx
         newFCEvent.current.start = startTime;
         newFCEvent.current.end = endTime;
         newFCEvent.current.extendedProps = extendedProps;
-        setIsTaskMode(!!extendedProps.duration)
+        setModalType(extendedProps.type);
         setIsModalOpen(true);
+        setModalTypeLocked(true);
         console.warn(JSON.parse(JSON.stringify(newFCEvent.current)))
     };
 
     let processedEvents = [
-        ...calendarEvents.map((event: CalendarEvent) => ({
-            ...event,
-            color: "blue",  // Default color for newly added events
+        ...taskEvents.map((event: TaskEvent) => ({
+            id: "taskev-" + event.eventID.toString(),
+            title: event.title,
+            start: event.start,
+            end: event.end,
+            extendedProps: {
+                type: "task_event",
+            },
+            color: "blue",  // Task events
         })),
-        ...taskEvents.map(task => ({
-            ...task,
+        ...tasks.map((task: Task) => ({
+            id: "task-" + task.taskID.toString(),
+            title: task.title,
+            start: task.deadline,
+            // end: task.deadline,
+            extendedProps: {
+                type: "task",
+                description: task.description,
+                priority: task.priority,
+                duration: task.duration,
+                isCompleted: task.isCompleted,
+            },
             color: "rgb(144,238,144)",  // Light green for tasks
             textColor: "black",
         })),
-        ...backendEvents.map(event => ({
-            ...event,
-            color: "rgb(255,99,132)",  // Red for backend events
+        ...standaloneEvents.map((event: StandaloneEvent) => ({
+            id: "standalone-" + event.standaloneEventID.toString(),
+            title: event.standaloneEventName,
+            start: event.start,
+            end: event.end,
+            extendedProps: {
+                type: "standalone_event",
+                description: event.standaloneEventDescription
+            },
+            color: "rgb(255,99,132)",  // Red for standalone events
             textColor: "black",
         })),
     ]

@@ -6,12 +6,12 @@ interface InputProps {
 }
 
 interface ModeToggleButtonProps {
-  mode: "task" | "event";
+  mode: "task" | "task_event" | "standalone_event";
   isActive: boolean;
-  setIsTaskMode: (value: boolean) => void;
+  setModalType: (value: string) => void;
 }
 
-export const ModeToggleButton: React.FC<ModeToggleButtonProps> = ({ mode, isActive, setIsTaskMode }) => {
+export const ModeToggleButton: React.FC<ModeToggleButtonProps> = ({ mode, isActive, setModalType }) => {
   return (
     <label className="flex items-center cursor-pointer">
       <input
@@ -19,7 +19,7 @@ export const ModeToggleButton: React.FC<ModeToggleButtonProps> = ({ mode, isActi
         type="radio"
         value={mode}
         checked={isActive}
-        onChange={() => setIsTaskMode(mode === "task")}
+        onChange={() => setModalType(mode)}
         className="hidden"
       />
       <span className={`px-4 py-2 rounded ${isActive ? "bg-blue-500 text-white" : "bg-gray-300 text-black"}`}>
@@ -29,24 +29,26 @@ export const ModeToggleButton: React.FC<ModeToggleButtonProps> = ({ mode, isActi
   );
 };
 
-export const TitleInput: React.FC<InputProps & { isTaskMode: boolean }> = ({ value, onChange, isTaskMode }) => (
+export const TitleInput: React.FC<InputProps & { modalType: string, readonly?: boolean }> = ({ value, onChange, modalType, readonly = false }) => (
   <input
     name="title"
     type="text"
-    placeholder={isTaskMode ? "Task Title" : "Event Title"}
+    placeholder={modalType === "task" ? "Task Title" : "Event Title"}
     value={value}
     onChange={onChange}
+    readOnly={readonly}
+    disabled={readonly}
     required
     className="border p-2 rounded w-full mt-2"
   />
 );
 
-export const StartDateInput: React.FC<InputProps> = ({ value, onChange, isTaskMode }) => (
+export const StartDateInput: React.FC<InputProps & { modalType: string }> = ({ value, onChange, modalType }) => (
   <input
     name="start"
     type={value ? "datetime-local" : "text"}
     onFocus={(e) => (e.target.type = "datetime-local")}
-    placeholder={isTaskMode ? "Deadline" : "Start Date"}
+    placeholder={modalType === "task" ? "Deadline" : "Start Date"}
     value={value}
     onChange={onChange}
     required

@@ -1,5 +1,10 @@
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+
 DATABASE_URL = "sqlite:///./database.db"
-API_KEY = "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"
+API_KEY = os.getenv("OPENROUTER_API_KEY")
 DATETIME_FORMAT = "%Y-%m-%dT%H:%M"
 
 # List of default achievements
