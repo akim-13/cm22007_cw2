@@ -98,24 +98,26 @@ const TaskEventModal: React.FC<TaskEventModalProps> = ({
         }
 
         try {
+            const numericId = currentFCEvent.id.split("-")[1];
             if (modalType === "task") {
-                await axios.delete(`${HOST}/delete_events_from_task/${currentFCEvent.id}`);
-                console.log(`Events of task "${currentFCEvent.id}" deleted successfully.`);
-                await axios.delete(`${HOST}/delete_task/${currentFCEvent.id}`);
-                console.log(`Task "${currentFCEvent.id}" deleted successfully.`);
+                await axios.delete(`${HOST}/delete_events_from_task/${numericId}`);
+                console.log(`Events of task "${numericId}" deleted successfully.`);
+                await axios.delete(`${HOST}/delete_task/${numericId}`);
+                console.log(`Task "${numericId}" deleted successfully.`);
             } else if (modalType === "standalone_event") {
-                await axios.delete(`${HOST}/delete_standalone_event/${currentFCEvent.id}`);
-                console.log(`Event "${currentFCEvent.id}" deleted successfully.`);
+                await axios.delete(`${HOST}/delete_standalone_event/${numericId}`);
+                console.log(`Event "${numericId}" deleted successfully.`);
             } else if (modalType === "task_event") {
-                // TODO
-                throw new Error("TODO: Delete task_event");
+                await axios.delete(`${HOST}/delete_task_event/${numericId}`);
+                console.log(`Task event "${numericId}" deleted successfully.`);
             }
         } catch (e) {
             console.error("Error deleting task or event", e);
         }
 
         setIsModalOpen(false);
-        window.location.reload();
+        fetchAll();
+        // window.location.reload();
     };
 
     const getFormData = () => {

@@ -100,7 +100,7 @@ const App: React.FC = () => {
     events: undefined,
   };
 
-  const newFCEvent = useRef<{ [key: string]: any }>({
+  const newFCEvent = useRef<FCEvent>({
     extendedProps: { ...initialExtendedProps },
   });
 
@@ -124,12 +124,18 @@ const App: React.FC = () => {
                   taskID={task.taskID}
                   title={task.title}
                   priority={task.priority} // Assuming priority is a number
-                  duration={`${task.duration} minutes`}
+                  duration={task.duration}
                   deadline={task.deadline}
                   description={task.description}
                   dropdown={true} // or false based on your needs
                   otherTasks={[
                   ]}
+
+                  newFCEvent={newFCEvent}
+                  setModalTypeLocked={setModalTypeLocked}
+                  setModalType={setModalType}
+                  setIsModalOpen={setIsModalOpen}
+                  fetchAll={fetchAll}
                 />
               ))
             ) : (

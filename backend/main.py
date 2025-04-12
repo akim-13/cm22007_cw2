@@ -159,7 +159,12 @@ def delete_events_from_task(request: Request, taskID: int, db: Session = Depends
 
 @app.post("/edit_task_event", response_class=JSONResponse)
 def edit_event(request: Request, editID: int = Form(), start: datetime = Form(), end: datetime = Form(), db: Session = Depends(yield_db)):
-    response = event_service.edit_event(editID, start, end, db)
+    response = event_service.edit_task_event(editID, start, end, db)
+    return JSONResponse(status_code = 200, content = response)
+
+@app.delete("/delete_task_event/{taskEvId}", response_class=JSONResponse)
+def delete_task_event(request: Request, taskEvId: int, db: Session = Depends(yield_db)):
+    response = event_service.delete_events_from_task(taskEvId, db)
     return JSONResponse(status_code = 200, content = response)
 
 
