@@ -24,7 +24,7 @@ describe("InputPrompt", () => {
         setIsModalOpen={mockSetIsModalOpen}
         newFCEvent={mockNewFCEvent}
         initialExtendedProps={mockInitialExtendedProps}
-        setIsTaskMode={mockSetIsTaskMode}
+        setModalType={mockSetIsTaskMode}
       />
     );
 
@@ -42,7 +42,7 @@ describe("InputPrompt", () => {
         setIsModalOpen={mockSetIsModalOpen}
         newFCEvent={mockNewFCEvent}
         initialExtendedProps={mockInitialExtendedProps}
-        setIsTaskMode={mockSetIsTaskMode}
+        setModalType={mockSetIsTaskMode}
       />
     );
 
@@ -57,7 +57,7 @@ describe("InputPrompt", () => {
         setIsModalOpen={mockSetIsModalOpen}
         newFCEvent={mockNewFCEvent}
         initialExtendedProps={mockInitialExtendedProps}
-        setIsTaskMode={mockSetIsTaskMode}
+        setModalType={mockSetIsTaskMode}
       />
     );
 

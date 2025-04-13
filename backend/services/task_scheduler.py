@@ -95,7 +95,8 @@ def break_down_add_events(username: str, taskID: int, db: Session) -> dict:
     
     calendar = [{"start": event["start"], "end": event["end"]} for event in events]
     calendar.extend([{"start": s_event["start"], "end": s_event["end"]} for s_event in standalone_events])
-    new_events_json = breakdown_task_LLM(get_user_prompt(task, calendar))['events']
+    out = breakdown_task_LLM(get_user_prompt(task, calendar))
+    new_events_json = out['events']
     
     print("EVENTS: ", new_events_json, type(new_events_json))
     

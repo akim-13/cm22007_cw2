@@ -27,7 +27,7 @@ def get_all_events(username: str, db: Session) -> dict:
     return {"events": events}
 
 
-def edit_event(eventID: int, new_start: datetime, new_end: datetime, db: Session):
+def edit_task_event(eventID: int, new_start: datetime, new_end: datetime, db: Session):
     event = db.query(Event).filter(Event.eventID == eventID).first()
     event.start = new_start
     event.end = new_end
@@ -53,6 +53,18 @@ def get_latest_standalone_event(username: str, db: Session) -> dict:
     else:
         return {"latest_standalone_event": None}
 
+def edit_standalone_event(standaloneEventID: int, standaloneEventName: str, standaloneEventDescription: str, start: datetime, end: datetime, db: Session):
+    standalone_event = db.query(Standalone_Event).filter(Standalone_Event.standaloneEventID == standaloneEventID).first()
+    if standalone_event is None:
+        return {"success": False, "message": "Event not found"}
+    
+    standalone_event.standaloneEventName = standaloneEventName
+    standalone_event.standaloneEventDescription = standaloneEventDescription
+    standalone_event.start = start
+    standalone_event.end = end
+    db.commit()
+    
+    return {"success": True}
 
 def get_events_from_task(taskID: int, db: Session):
     events = db.query(Task).filter(Task.taskID == taskID).first().events
@@ -62,6 +74,16 @@ def get_events_from_task(taskID: int, db: Session):
 def delete_events_from_task(taskID: int, db: Session):
     events = db.query(Event).filter(Event.taskID == taskID)
     events.delete()
+    db.commit()
+    
+    return {"success": True}
+
+def delete_task_event(eventID: int, db: Session):
+    event = db.query(Event).filter(Event.eventID == eventID).first()
+    if event is None:
+        return {"success": False, "message": "Event not found"}
+    
+    db.delete(event)
     db.commit()
     
     return {"success": True}

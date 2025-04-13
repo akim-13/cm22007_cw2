@@ -88,7 +88,7 @@ describe("TaskEventModal", () => {
   });
 
   test("renders modal title for event mode", () => {
-    render(<TaskEventModal {...defaultProps} isTaskMode={false} />);
+    render(<TaskEventModal {...defaultProps} modalType={false} />);
     expect(screen.getByText(/Manage Event/i)).toBeInTheDocument();
   });
 
@@ -108,7 +108,7 @@ describe("TaskEventModal", () => {
   });
 
   test("renders event mode inputs", () => {
-    render(<TaskEventModal {...defaultProps} isTaskMode={false} />);
+    render(<TaskEventModal {...defaultProps} modalType={false} />);
     expect(screen.getByTestId("title-input")).toBeInTheDocument();
     expect(screen.getByTestId("start-date-input")).toBeInTheDocument();
     expect(screen.getByTestId("end-date-input")).toBeInTheDocument();
@@ -135,7 +135,7 @@ describe("TaskEventModal", () => {
     mockedAxios.post.mockImplementation(mockedPost);
     mockedAxios.get.mockImplementation(mockedGet);
 
-    render(<TaskEventModal {...defaultProps} isTaskMode={false} />);
+    render(<TaskEventModal {...defaultProps} modalType={false} />);
     
     const titleInput = screen.getByTestId("title-input");
     const startInput = screen.getByTestId("start-date-input");

@@ -3,9 +3,10 @@ import { Check, Plus } from "lucide-react";
 
 interface InputPromptProps {
   setIsModalOpen: (isOpen: boolean) => void;
+  setModalTypeLocked: (isLocked: boolean) => void;
   newFCEvent: React.MutableRefObject<any>;
   initialExtendedProps: Record<string, any>;
-  setIsTaskMode: (isTask: boolean) => void;
+  setModalType: (isTask: string) => void;
 }
 
 interface AIResponse {
@@ -19,7 +20,7 @@ interface AIResponse {
   end?: string;
 }
 
-export default function InputPrompt({ setIsModalOpen, newFCEvent, initialExtendedProps, setIsTaskMode }: InputPromptProps) {
+export default function InputPrompt({ setIsModalOpen, setModalTypeLocked, newFCEvent, initialExtendedProps, setModalType }: InputPromptProps) {
   const [input, setInput] = useState("");
   const [response, setResponse] = useState<AIResponse | null>(null);
 
@@ -54,17 +55,18 @@ export default function InputPrompt({ setIsModalOpen, newFCEvent, initialExtende
       cur.extendedProps["description"] = data.description;
 
       if (data.type === "Task") {
-        setIsTaskMode(true);
+        setModalType("task");
         cur["start"] = data.deadline ?? "";
         cur.extendedProps["duration"] = data.durationMinutes ?? "";
         cur.extendedProps["priority"] = data?.priority ?? 0;
       } else {
-        setIsTaskMode(false);
+        setModalType("standalone_event");
         cur["start"] = data.start ?? "";
         cur["end"] = data.end ?? "";
       }
 
       setIsModalOpen(true);
+      setModalTypeLocked(false);
     } catch (error) {
       console.error("Error:", error);
     }
@@ -74,7 +76,9 @@ export default function InputPrompt({ setIsModalOpen, newFCEvent, initialExtende
 
   const handleCreateEventClick = () => {
     newFCEvent.current = { extendedProps: { ...initialExtendedProps } };
+    setModalType("task");
     setIsModalOpen(true);
+    setModalTypeLocked(false);
   };
 
   return (

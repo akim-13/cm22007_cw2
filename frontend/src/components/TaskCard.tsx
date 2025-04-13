@@ -5,11 +5,16 @@ interface TaskCardProps {
   taskID: number,
   title: string;
   priority: 'high' | 'medium' | 'low';
-  duration: string;
+  duration: number;
   deadline: string;
   description?: string;
   dropdown?: boolean;
   otherTasks?: string[];
+  newFCEvent: any; // TODO: proper type
+  setModalTypeLocked: (value: boolean) => void;
+  setModalType: (value: string) => void;
+  setIsModalOpen: (value: boolean) => void;
+  fetchAll: () => void;
 }
 
 const TaskCard: React.FC<TaskCardProps> = ({
@@ -20,7 +25,13 @@ const TaskCard: React.FC<TaskCardProps> = ({
   deadline,
   description = '',
   dropdown = false,
-  otherTasks = []
+  otherTasks = [],
+  newFCEvent,
+  setModalTypeLocked,
+  setModalType,
+  setIsModalOpen,
+  fetchAll,
+  
 }) => {
   const [isChecked, setIsChecked] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -39,6 +50,25 @@ const TaskCard: React.FC<TaskCardProps> = ({
     setIsChecked(!isChecked);
   };
 
+  const handleEditClick = () => {
+    newFCEvent.current = {
+      id: "task-" + taskID.toString(),
+      title: title,
+      start: deadline,
+      extendedProps: {
+        type: 'task',
+        description: description,
+        priority: priority,
+        duration: duration,
+        isCompleted: isChecked,
+      },
+    };
+    console.log(newFCEvent.current)
+    setModalType('task');
+    setIsModalOpen(true);
+    setModalTypeLocked(true);
+  };
+
   const priorityColor = priority === 'high' ? 'bg-red-600' : 
                         priority === 'medium' ? 'bg-orange-500' : 
                         'bg-green-500';
@@ -52,7 +82,10 @@ const TaskCard: React.FC<TaskCardProps> = ({
           <h3 className="text-xl font-semibold text-black">{title}</h3>
         </div>
         <div className="flex space-x-2">
-          <button className="bg-gray-100 text-black p-1 rounded">
+          <button
+            onClick={handleEditClick}
+            className="bg-gray-100 text-black p-1 rounded"
+          >
             ✏️
           </button>
           {dropdown && (description || otherTasks.length > 0) && (
@@ -70,7 +103,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
       <p className="text-black font-semibold">Deadline: {deadline}</p>
 
       {/* Duration */}
-      <p className="text-black">Duration: {duration}</p>
+      <p className="text-black">Duration: {duration} minutes</p>
 
       {/* Checkbox */}
       <input 

@@ -110,7 +110,7 @@ def test_edit_event(db_session):
     assert len(events) == 4
     eventID = events[0]["eventID"]
     
-    event_service.edit_event(eventID, datetime(2025, 4, 22, 12), datetime(2025, 4, 22, 14), db_session)
+    event_service.edit_task_event(eventID, datetime(2025, 4, 22, 12), datetime(2025, 4, 22, 14), db_session)
     
     # Should be 5 instead of 4 because we editing the event above to be in this time slot as well
     events = event_service.get_events(username, (datetime(2025, 4, 22), datetime(2025, 4, 29)), db_session).get("events")

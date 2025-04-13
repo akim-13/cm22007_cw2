@@ -7,13 +7,89 @@ import InputPrompt from "./components/InputPrompt";
 import SignIn from "./components/SignIn"; // Import the SignIn component
 import "./styles/fullcalendar.css";
 
+export interface StandaloneEvent {
+  standaloneEventName: string;
+  standaloneEventID: number;
+  eventBy: string | null;
+  start: string;
+  end: string;
+  standaloneEventDescription: string;
+  username: string;
+}
+
+export interface TaskEvent {
+  start: string;
+  end: string;
+  eventID: string;
+  title: string;
+}
+
+export interface Task {
+  title: string;
+  taskID: number;
+  deadline: string;
+  priority: number;
+  duration: number;
+  description: string;
+  isCompleted: boolean;
+  username: string;
+}
+
 const App: React.FC = () => {
-  const [isTaskMode, setIsTaskMode] = useState(true);
+  const [modalType, setModalType] = useState('task');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalTypeLocked, setModalTypeLocked] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false); // added from input_prompt
   const [isSignedIn, setIsSignedIn] = useState(false); // Authentication state
-  const [tasks, setTasks] = useState<any[]>([]); // Store tasks fetched from the API
-  const [events, setEvents] = useState<any[]>([]); // Store events fetched from the API
+  const username = "joe"; // TODO
+
+  const [standaloneEvents, setStandaloneEvents] = useState<StandaloneEvent[]>([]);
+  const [taskEvents, setTaskEvents] = useState<TaskEvent[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  useEffect(() => {
+      fetchAll();
+  }, []);
+
+  const fetchStandaloneEvents = async () => {
+      try {
+          const standaloneEventsResponse = await axios.get(
+              `http://localhost:8000/get_standalone_events/${username}`
+          );
+          setStandaloneEvents(standaloneEventsResponse.data.standalone_events);
+      } catch (error) {
+          console.error("Error fetching events:", error);
+      }
+  };
+
+  const fetchTaskEvents = async () => {
+      try {
+          const eventsResponse = await axios.get(
+              `http://localhost:8000/get_events_from_user/${username}`
+          );
+          setTaskEvents(eventsResponse.data.events);
+      } catch (error) {
+          console.error("Error fetching events:", error);
+      }
+  };
+
+  const fetchTasks = async () => {
+      try {
+          const taskResponse = await axios.get(`http://localhost:8000/get_user_tasks/${username}`);
+          setTasks(taskResponse.data.tasks)
+      } catch (error) {
+          console.error("Error fetching tasks:", error);
+      }
+  };
+
+  const fetchAll = async () => {
+    await Promise.all([
+      fetchStandaloneEvents(),
+      fetchTaskEvents(),
+      fetchTasks(),
+    ]);
+  }
+
+
   const initialExtendedProps = {
     username: "joe",
     taskID: undefined,
@@ -24,35 +100,9 @@ const App: React.FC = () => {
     events: undefined,
   };
 
-  const newFCEvent = useRef<{ [key: string]: any }>({
+  const newFCEvent = useRef<FCEvent>({
     extendedProps: { ...initialExtendedProps },
   });
-
-  
-  // Fetch tasks from the API when the component mounts
-  useEffect(() => {
-    const fetchTasks = async () => {
-      try {
-        const taskResponse = await axios.get(`http://localhost:8000/get_user_tasks/${initialExtendedProps.username}`);
-        console.log("Tasks fetched from API:", taskResponse.data.tasks);
-        setTasks(taskResponse.data.tasks); // Assuming the response has a 'tasks' key
-      } catch (error) {
-        console.error("Error fetching tasks:", error);
-      }
-    };
-
-    const fetchEvents = async () => {
-      try{
-        const eventResponse = await axios.get(`http://localhost:8000/get_events_from_user/${initialExtendedProps.username}`);
-        setEvents(eventResponse.data.events)
-      }
-      catch (error){
-        console.error(error);
-      }
-    };
-
-    fetchTasks();
-  }, [initialExtendedProps.username]); // Fetch tasks when the component mounts or when the username changes
 
   const handleSignIn = () => {
     setIsSignedIn(true); // Update authentication state once the user signs in
@@ -70,15 +120,22 @@ const App: React.FC = () => {
             {tasks.length > 0 ? (
               tasks.map((task) => (
                 <TaskCard
-                  taskID={task.taskID} // Unique key for each task
+                  key={task.taskID}
+                  taskID={task.taskID}
                   title={task.title}
-                  priority={task.priority === 0 ? "Low" : "High"} // Assuming priority is a number
-                  duration={`${task.duration} minutes`}
+                  priority={task.priority} // Assuming priority is a number
+                  duration={task.duration}
                   deadline={task.deadline}
                   description={task.description}
                   dropdown={true} // or false based on your needs
                   otherTasks={[
                   ]}
+
+                  newFCEvent={newFCEvent}
+                  setModalTypeLocked={setModalTypeLocked}
+                  setModalType={setModalType}
+                  setIsModalOpen={setIsModalOpen}
+                  fetchAll={fetchAll}
                 />
               ))
             ) : (
@@ -90,32 +147,35 @@ const App: React.FC = () => {
           <div className="flex-grow flex flex-col p-6">
             {isModalOpen && (
               <TaskEventModal
-                events={tasks}
-                setEvents={setTasks}
                 isModalOpen={isModalOpen}
                 setIsModalOpen={setIsModalOpen}
+                modalTypeLocked={modalTypeLocked}
                 newFCEvent={newFCEvent}
-                initialExtendedProps={initialExtendedProps}
-                setIsTaskMode={setIsTaskMode}
-                isTaskMode={isTaskMode}
+                setModalType={setModalType}
+                modalType={modalType}
+                fetchAll={fetchAll}
               />
             )}
 
             <Calendar
-              events={events}
+              standaloneEvents={standaloneEvents}
+              taskEvents={taskEvents}
               tasks={tasks}
               setIsModalOpen={setIsModalOpen}
+              setModalTypeLocked={setModalTypeLocked}
               newFCEvent={newFCEvent}
               initialExtendedProps={initialExtendedProps}
-              setIsTaskMode={setIsTaskMode}
+              setModalType={setModalType}
+              fetchAll={fetchAll}
             />
 
             <div className="pt-4">
               <InputPrompt
                 setIsModalOpen={setIsModalOpen}
+                setModalTypeLocked={setModalTypeLocked}
                 initialExtendedProps={initialExtendedProps}
                 newFCEvent={newFCEvent}
-                setIsTaskMode={setIsTaskMode}
+                setModalType={setModalType}
               />
             </div>
           </div>
