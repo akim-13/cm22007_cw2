@@ -152,22 +152,7 @@ const TaskEventModal: React.FC<TaskEventModalProps> = ({
 
         setIsModalOpen(false);
         fetchAll();
-        // window.location.reload();
     };
-
-    // const fetchTasksOrEventsData = async () => {
-    //     const getOperation = isTaskMode ? "get_latest_user_task" : "get_latest_standalone_event";
-    //     const username = "joe";
-    //     try {
-    //         const response = await axios.get(`${HOST}/${getOperation}/${username}`);
-    //         console.log(`Fetch request ${getOperation} successful:`);
-    //         console.log(response.data);
-    //         return response.data;
-    //     } catch (error) {
-    //         console.error(`Error performing ${getOperation}:`, error);
-    //         return null;
-    //     }
-    // };
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -176,68 +161,11 @@ const TaskEventModal: React.FC<TaskEventModalProps> = ({
 
         let edit = false;
         if (newFCEvent.current.id) {
-            // console.log("Nothing yet but should be edited.");
-            // setIsModalOpen(false);
-
-            // if (isTaskMode) {
-            //     window.location.reload();
-            // }
-            // return;
             edit = true;
             formData.append("editID", newFCEvent.current.id.split("-")[1]);
         }
 
-        // console.log(newFCEvent.current.extendedProps.type);
         await sendAddOrEditRequest(formData, edit, modalType);
-        // const taskOrEventData = await fetchTasksOrEventsData();
-
-        // if (taskOrEventData === null) {
-        //     alert("Sorry, something went wrong.");
-        //     console.error("Something went wrong when adding a task or an event. No changes have been made.");
-        //     return;
-        // }
-
-        // const taskEvents: FCEvent[] = [];
-
-        // if (isTaskMode) {
-        //     newFCEvent.current.extendedProps.username = taskOrEventData.latest_task.username;
-        //     newFCEvent.current.id = taskOrEventData.latest_task.taskID;
-        //     try {
-        //         const response = await axios.put(`${HOST}/breakdown_task/${newFCEvent.current.id}`);
-
-        //         if (response.data && Array.isArray(response.data.events_added)) {
-        //             response.data.events_added.forEach((event: TaskEvent) => {
-        //                 const curTaskEvent: FCEvent = { 
-        //                     title: newFCEvent.current.title,
-        //                     start: event.start, 
-        //                     end: event.end, 
-        //                     extendedProps: {
-        //                         ...initialExtendedProps, 
-        //                         taskID: event.taskID
-        //                     }
-        //                 };
-
-        //                 taskEvents.push(curTaskEvent);
-        //             });
-        //         } else {
-        //             console.error("Invalid response format:", response.data);
-        //         }
-
-        //     } catch (error) {
-        //         console.error(`Error retrieving events from task ID "${newFCEvent.current.id}"`, error);
-        //     }
-        // } else {
-        //     newFCEvent.current.extendedProps.username = taskOrEventData.latest_standalone_event.username;
-        //     newFCEvent.current.id = taskOrEventData.latest_standalone_event.standaloneEventID;
-        // }
-
-        // const newEventTmp: FCEvent = JSON.parse(JSON.stringify(newFCEvent.current)); 
-        // setEvents([...events, ...taskEvents, newEventTmp]);
-        // setIsModalOpen(false);
-
-        // if (!isTaskMode) {
-        //     window.location.reload();
-        // }
 
         await fetchAll();
         setIsModalOpen(false);
