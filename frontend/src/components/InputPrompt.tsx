@@ -76,6 +76,7 @@ export default function InputPrompt({ setIsModalOpen, setModalTypeLocked, newFCE
 
   const handleCreateEventClick = () => {
     newFCEvent.current = { extendedProps: { ...initialExtendedProps } };
+    setModalType("task");
     setIsModalOpen(true);
     setModalTypeLocked(false);
   };

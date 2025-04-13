@@ -7,6 +7,7 @@ import axios from "axios";
 import AchievementModal from "./AchievementModal";
 import SettingsModal from "./SettingsModal";
 import { StandaloneEvent, Task, TaskEvent } from "../App";
+import { getFormData, sendAddOrEditRequest } from "./TaskEventModal";
 
 const formatDate = (date: Date): string => {
     // Time zones/daylight saving time
@@ -14,34 +15,44 @@ const formatDate = (date: Date): string => {
     return adjusted.toISOString().slice(0, 16);
 };
 
-const Calendar: React.FC<any> = ({ standaloneEvents, taskEvents, tasks, setIsModalOpen, setModalTypeLocked, newFCEvent, initialExtendedProps, setModalType }) => {
+// TODO: This is not clean code
+function convEvent(event: any) {
+    const startTime = event.start ? formatDate(event.start) : "";
+    const endTime = event.end ? formatDate(event.end) : "";
+    const extendedProps = event.extendedProps;
+
+    const obj: any = {};
+    obj.id = event.id
+    obj.title = event.title || "";
+    obj.start = startTime;
+    obj.end = endTime;
+    obj.extendedProps = extendedProps;
+
+    return obj;
+}
+
+const Calendar: React.FC<any> = ({ standaloneEvents, taskEvents, tasks, setIsModalOpen, setModalTypeLocked, newFCEvent, initialExtendedProps, setModalType, fetchAll }) => {
     const [isAchievementModalOpen, setIsAchievementModalOpen] = useState(false);
     const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
     const username = "joe"; 
 
     const handleEventClick = (info: any) => {
-        const startTime = info.event.start ? formatDate(info.event.start) : "";
-        const endTime = info.event.end ? formatDate(info.event.end) : "";
-        const extendedProps = info.event.extendedProps;
-        let extendedPropsText = "";
+        newFCEvent.current = convEvent(info.event);
 
-        if (extendedProps) {
-            extendedPropsText = Object.entries(extendedProps)
-                .map(([key, value]) => `${key}: ${value}`)
-                .join("\n");
-        }
-
-        newFCEvent.current = { extendedProps: { ...initialExtendedProps } };
-        newFCEvent.current.id = info.event.id
-        newFCEvent.current.title = info.event.title || "";
-        newFCEvent.current.start = startTime;
-        newFCEvent.current.end = endTime;
-        newFCEvent.current.extendedProps = extendedProps;
-        setModalType(extendedProps.type);
+        setModalType(newFCEvent.current.extendedProps.type);
         setIsModalOpen(true);
         setModalTypeLocked(true);
         console.warn(JSON.parse(JSON.stringify(newFCEvent.current)))
     };
+
+    // TODO: Duplication from TaskEventModal
+    const handleEventChange = async (info: any) => {
+        const convertedEvent = convEvent(info.event);
+        const formData = getFormData(convertedEvent, info.event.extendedProps.type);
+        formData.append("editID", info.event.id.split("-")[1]);
+        await sendAddOrEditRequest(formData, true, info.event.extendedProps.type);
+        await fetchAll();
+    }
 
     let processedEvents = [
         ...taskEvents.map((event: TaskEvent) => ({
@@ -112,6 +123,9 @@ const Calendar: React.FC<any> = ({ standaloneEvents, taskEvents, tasks, setIsMod
                 events={processedEvents}
 
                 eventClick={handleEventClick}
+
+                eventDrop={handleEventChange}
+                eventResize={handleEventChange}
             />
 
             <AchievementModal

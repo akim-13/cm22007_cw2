@@ -48,6 +48,41 @@ interface TaskEventModalProps {
   fetchAll: () => Promise<void>;
 }
 
+export const getFormData = (currentFCEvent: FCEvent, modalType: string) => {
+    const formData = new FormData();
+
+    if (modalType === "task") {
+        formData.append("title", currentFCEvent.title);
+        formData.append("deadline", currentFCEvent.start);
+        formData.append("description", currentFCEvent.extendedProps.description);
+        formData.append("duration", currentFCEvent.extendedProps.duration);
+        formData.append("priority", currentFCEvent.extendedProps.priority);
+    } else if (modalType === "standalone_event") {
+        formData.append("start", currentFCEvent.start);
+        formData.append("end", currentFCEvent.end);
+        formData.append("standaloneEventName", currentFCEvent.title);
+        formData.append("standaloneEventDescription", currentFCEvent.extendedProps.description);
+    } else {
+        formData.append("start", currentFCEvent.start);
+        formData.append("end", currentFCEvent.end);
+    }
+
+    return formData;
+};
+
+export const sendAddOrEditRequest = async (formData: FormData, editMode: boolean, modalType: string) => {
+    const operation = 
+        (editMode
+            ? ("edit_" + modalType)
+            : ("add_" + modalType)
+        );
+    console.warn([...formData.entries()]);
+    const response = await axios.post(`${HOST}/${operation}`, formData);
+    console.log(`Add/edit request ${operation} sent successfully:`);
+    for (const pair of formData.entries()) { console.log(`${pair[0]}: ${pair[1]}`); }
+    return response;
+};
+
 const TaskEventModal: React.FC<TaskEventModalProps> = ({ 
     isModalOpen, setIsModalOpen, 
     modalTypeLocked,
@@ -120,42 +155,6 @@ const TaskEventModal: React.FC<TaskEventModalProps> = ({
         // window.location.reload();
     };
 
-    const getFormData = () => {
-        const currentFCEvent = newFCEvent.current;
-        const formData = new FormData();
-
-        if (modalType === "task") {
-            formData.append("title", currentFCEvent.title);
-            formData.append("deadline", currentFCEvent.start);
-            formData.append("description", currentFCEvent.extendedProps.description);
-            formData.append("duration", currentFCEvent.extendedProps.duration);
-            formData.append("priority", currentFCEvent.extendedProps.priority);
-        } else if (modalType === "standalone_event") {
-            formData.append("start", currentFCEvent.start);
-            formData.append("end", currentFCEvent.end);
-            formData.append("standaloneEventName", currentFCEvent.title);
-            formData.append("standaloneEventDescription", currentFCEvent.extendedProps.description);
-        } else {
-            formData.append("start", currentFCEvent.start);
-            formData.append("end", currentFCEvent.end);
-        }
-
-        return formData;
-    };
-
-    const sendAddOrEditRequest = async (formData: FormData, editMode: boolean = false) => {
-        const operation = 
-            (editMode
-                ? ("edit_" + modalType)
-                : ("add_" + modalType)
-            );
-        console.warn([...formData.entries()]);
-        const response = await axios.post(`${HOST}/${operation}`, formData);
-        console.log(`Add/edit request ${operation} sent successfully:`);
-        for (const pair of formData.entries()) { console.log(`${pair[0]}: ${pair[1]}`); }
-        return response;
-    };
-
     // const fetchTasksOrEventsData = async () => {
     //     const getOperation = isTaskMode ? "get_latest_user_task" : "get_latest_standalone_event";
     //     const username = "joe";
@@ -173,7 +172,7 @@ const TaskEventModal: React.FC<TaskEventModalProps> = ({
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
-        const formData = getFormData();
+        const formData = getFormData(newFCEvent.current, modalType);
 
         let edit = false;
         if (newFCEvent.current.id) {
@@ -189,7 +188,7 @@ const TaskEventModal: React.FC<TaskEventModalProps> = ({
         }
 
         // console.log(newFCEvent.current.extendedProps.type);
-        await sendAddOrEditRequest(formData, edit);
+        await sendAddOrEditRequest(formData, edit, modalType);
         // const taskOrEventData = await fetchTasksOrEventsData();
 
         // if (taskOrEventData === null) {

@@ -166,6 +166,7 @@ const App: React.FC = () => {
               newFCEvent={newFCEvent}
               initialExtendedProps={initialExtendedProps}
               setModalType={setModalType}
+              fetchAll={fetchAll}
             />
 
             <div className="pt-4">
