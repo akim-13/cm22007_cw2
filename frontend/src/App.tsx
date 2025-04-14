@@ -6,6 +6,7 @@ import TaskCard from "./components/TaskCard";
 import InputPrompt from "./components/InputPrompt";
 import SignIn from "./components/SignIn"; // Import the SignIn component
 import "./styles/fullcalendar.css";
+import LoadingOverlay from "./components/LoadingOverlay";
 
 export interface StandaloneEvent {
   standaloneEventName: string;
@@ -46,6 +47,9 @@ const App: React.FC = () => {
   const [standaloneEvents, setStandaloneEvents] = useState<StandaloneEvent[]>([]);
   const [taskEvents, setTaskEvents] = useState<TaskEvent[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
+
+  const [isLoading, setIsLoading] = useState(false);
+
   useEffect(() => {
       fetchAll();
   }, []);
@@ -154,6 +158,7 @@ const App: React.FC = () => {
                 setModalType={setModalType}
                 modalType={modalType}
                 fetchAll={fetchAll}
+                setIsLoading={setIsLoading}
               />
             )}
 
@@ -167,6 +172,7 @@ const App: React.FC = () => {
               initialExtendedProps={initialExtendedProps}
               setModalType={setModalType}
               fetchAll={fetchAll}
+              setIsLoading={setIsLoading}
             />
 
             <div className="pt-4">
@@ -181,6 +187,8 @@ const App: React.FC = () => {
           </div>
         </>
       )}
+
+      <LoadingOverlay isOpen={isLoading} />
     </div>
   );
 };

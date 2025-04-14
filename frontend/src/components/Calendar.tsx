@@ -31,7 +31,7 @@ function convEvent(event: any) {
     return obj;
 }
 
-const Calendar: React.FC<any> = ({ standaloneEvents, taskEvents, tasks, setIsModalOpen, setModalTypeLocked, newFCEvent, initialExtendedProps, setModalType, fetchAll }) => {
+const Calendar: React.FC<any> = ({ standaloneEvents, taskEvents, tasks, setIsModalOpen, setModalTypeLocked, newFCEvent, initialExtendedProps, setModalType, fetchAll, setIsLoading }) => {
     const [isAchievementModalOpen, setIsAchievementModalOpen] = useState(false);
     const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
     const username = "joe"; 
@@ -50,8 +50,11 @@ const Calendar: React.FC<any> = ({ standaloneEvents, taskEvents, tasks, setIsMod
         const convertedEvent = convEvent(info.event);
         const formData = getFormData(convertedEvent, info.event.extendedProps.type);
         formData.append("editID", info.event.id.split("-")[1]);
+
+        setIsLoading(true);
         await sendAddOrEditRequest(formData, true, info.event.extendedProps.type);
         await fetchAll();
+        setIsLoading(false);
     }
 
     let processedEvents = [

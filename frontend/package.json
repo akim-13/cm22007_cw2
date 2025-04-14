@@ -22,7 +22,8 @@
     "fullcalendar": "^6.1.15",
     "lucide-react": "^0.475.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "spinners-react": "^1.0.10"
   },
   "devDependencies": {
     "@babel/core": "^7.24.0",

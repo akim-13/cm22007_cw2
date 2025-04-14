@@ -46,6 +46,7 @@ interface TaskEventModalProps {
   modalType: string;
   setModalType: (value: string) => void;
   fetchAll: () => Promise<void>;
+  setIsLoading: (value: boolean) => void;
 }
 
 export const getFormData = (currentFCEvent: FCEvent, modalType: string) => {
@@ -88,7 +89,8 @@ const TaskEventModal: React.FC<TaskEventModalProps> = ({
     modalTypeLocked,
     newFCEvent,
     modalType, setModalType,
-    fetchAll
+    fetchAll,
+    setIsLoading
 }) => {
     const [, forceUpdate] = useState(0); 
 
@@ -165,10 +167,11 @@ const TaskEventModal: React.FC<TaskEventModalProps> = ({
             formData.append("editID", newFCEvent.current.id.split("-")[1]);
         }
 
+        setIsLoading(true);
         await sendAddOrEditRequest(formData, edit, modalType);
-
         await fetchAll();
         setIsModalOpen(false);
+        setIsLoading(false);
     };
 
     return (
@@ -225,17 +228,17 @@ const TaskEventModal: React.FC<TaskEventModalProps> = ({
                     Cancel
                 </button>
                 <button
+                    type="submit"
+                    className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+                >
+                    {newFCEvent.current.id ? "Update" : "Create"}
+                </button>
+                <button
                     type="button"
                     onClick={handleDelete}
                     className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
                 >
                     Delete
-                </button>
-                <button
-                    type="submit"
-                    className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
-                >
-                    {newFCEvent.current.id ? "Update" : "Create"}
                 </button>
             </div>
           </form>
