@@ -1,0 +1,17 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Docker Compose Up",
+      "type": "node",  // VS Code needs a debug type, so just use a dummy.
+      "request": "launch",
+      "runtimeExecutable": "docker",
+      "runtimeArgs": [
+        "compose",
+        "up",
+        "--build"
+      ],
+      "console": "integratedTerminal"
+    }
+  ]
+}
