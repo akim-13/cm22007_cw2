@@ -1,6 +1,7 @@
 services:
   backend:
-    build: ./backend
+    build: ${HOST_BACKEND_ABSOLUTE_DIR:-./backend}
+    working_dir: ${HOST_BACKEND_ABSOLUTE_DIR:-/app}
     command: uvicorn main:run_app --host 0.0.0.0 --port 8000 --reload
     ports:
       - "8000:8000"
@@ -9,7 +10,7 @@ services:
     environment:
       OPENAI_API_KEY: ${OPENAI_API_KEY}
     volumes:
-      - ./backend:/app
+      - ${HOST_BACKEND_ABSOLUTE_DIR:-./backend}:${HOST_BACKEND_ABSOLUTE_DIR:-/app}
     # depends_on:
     #   - db
 
