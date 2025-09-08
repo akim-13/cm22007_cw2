@@ -16,15 +16,16 @@ services:
 
   frontend:
     build: ./frontend
-    command: npm run dev -- --host 0.0.0.0 --port 3000
+    command: sh -lc 'test -d node_modules || npm ci; npm run dev -- --host 0.0.0.0 --port 3000'
     ports:
       - "3000:3000"
     volumes:
       - ./frontend:/app
       # Create an anonymous volume that's only available to the container and managed by Docker.
       # On host it is not visible/is empty. This prevents polluting host with os specific binaries.
-      - /app/node_modules
+      - node_deps:/app/node_modules
 
 # Add a database service later .
-# volumes:
+volumes:
+  node_deps:
 #   db_data:
