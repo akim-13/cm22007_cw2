@@ -9,5 +9,6 @@
         "Synchronised",
         "texttt",
         "timegrid"
-    ]
+    ],
+    "python.analysis.typeCheckingMode": "standard"
 }
