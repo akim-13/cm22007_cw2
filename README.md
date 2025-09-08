@@ -1,27 +1,38 @@
 > [!IMPORTANT]
-> All pull requests from other branches must be made to the **development** branch before passing it onto the master branch
+> All pull requests from other branches must be made to the `dev` branch before passing it onto the master branch.
 
-### Installing Frontend Dependencies
+## Development setup with Docker 
 
-In the frontend folder, ensure all dependencies are installed by running:
-```
-npm install --legacy-peer-deps
-```
-### Setting the OpenAI API Key
+This project ships with a `docker-compose.yml` that runs both the backend (FastAPI) and the frontend (React).
 
-To set the OpenAI API key, run the following command in your terminal:
-```
-export OPENAI_API_KEY="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"
-```
-### Starting the Server
+### Prerequisites
+- [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/) installed on your machine
+- An OpenAI API key (you can run w/o it, but AI won't work)
 
-To start the server, navigate to the backend folder and run the following command:
-```
-uvicorn main:run_app --host 127.0.0.1 --port 8000 --reload
-```
-### Starting the Frontend
+### Environment variables
+Create a `.env` file in the repo root:
 
-Finally, navigate to the frontend folder and start the frontend by running:
+```bash
+OPENAI_API_KEY=sk-yourkeyhere
+HOST_BACKEND_ABSOLUTE_DIR=/absolute/path/to/backend/dir
 ```
-npm run dev
+
+The last variable is optional, `docker compose` will fall back to a default value if unset. However, it is recommended to set it for a better debugging experience.
+
+### Start the stack
+From the project root:
+
+```bash
+docker compose up --build 
+```
+
+- Frontend: http://localhost:3000  
+- Backend: http://localhost:8000 (FastAPI docs at /docs)
+
+Edits to your code are reflected immediately because the repo is mounted into the containers.
+
+### Stop the stack
+
+```bash 
+docker compose down 
 ```
