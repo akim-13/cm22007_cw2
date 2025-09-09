@@ -7,12 +7,13 @@ from database import Task, Event
 from sqlalchemy.orm import Session
 from tools import convertToJson
 from services.event_service import get_standalone_events, get_events, delete_events_from_task
+from services.autofill import client
+from dotenv import load_dotenv
+load_dotenv()
+print(f"API_KEY:{API_KEY}")
 
-client = OpenAI(
-  base_url="https://openrouter.ai/api/v1",
-  api_key=API_KEY,
-)
 
+client = OpenAI()
 
 system_prompt = \
     """You are a calendar and task manager. Your job: break down tasks into events to be placed in a calendar. 
@@ -53,7 +54,7 @@ This is my calendar (events only have start and end times to save space):
 def breakdown_task_LLM(user_prompt):
     try:
         completion = client.chat.completions.create(
-            model="meta-llama/llama-3.3-70b-instruct:free",
+            model="gpt-5-mini",
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
@@ -61,7 +62,7 @@ def breakdown_task_LLM(user_prompt):
             response_format={"type": "json_object"},
         )
         
-        if not completion or not completion.choices:
+        if (not completion) or (not completion.choices):
                 print("Error: API response is empty.")
                 return {}  
         

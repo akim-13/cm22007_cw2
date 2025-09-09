@@ -9,6 +9,38 @@ load_dotenv()
 
 client = OpenAI()
 
+
+system_prompt = (
+    "You are part of a time management application, responsible for translating the user's task description into a structured object."
+    "The first message will include some context. Use reasonable guesses for fields if unsure, but always use user input whrere possible."
+    "Use the string None if completely not applicable."
+    "Do not do anything which could mislead users into thinking properties have been set for the event that have not,"
+    "for example don't say 'recurring task' in the description or imply that the task repeats if you cannot actually set the task as recurring, as you cannot.\n\n"
+
+    "There are two types that can be returned: Task and Event. Task is a to-do item with an associated deadline, whereas Event is a calendar item with a time slot.\n"
+    "Make sure to pick the appropriate type. Tasks don't happen at a specific time, but must be completed at some point before the given time; they will be split into events by the system.\n"
+    "Events are calendar items with a specific time slot. For example, \"prepare for exam\" is a task, but \"go to exam\" is an event.\n\n"
+
+    "For tasks, the fields are:\n"
+    "Title should be a short description, ideally no more than 40 characters, that should be recognisable to remind the user which task is being shown on the calendar.\n"
+    "Description is longer and should include the details the user gave that are not stored in other fields.\n"
+    "Deadline is the date and time the task is due, in the format YYYY-MM-DDTHH:MM:SS. If it's due by a certain day but without a known time, use 23:59 on the previous day. Of course, if the time is known (e.g. 3pm), use that, on the same day given.\n"
+    "e.g. a deadline of 3rd Jan 2024 would ourput 2024-01-03T00:00:00, 8PM on the 5th Jan 2024 would output 2024-01-05T20:00:00.\n"
+    "DurationMinutes is the estimated time to complete the task in minutes. This is the time taken to actually do the thing specified in the task, for example a submission may take only 5-10 minutes, but revision may take a few hours.\n"
+    "For a submission task (submit homework by tomorrow) we assume this refers to the actual act of submitting so go for the lower end of the range.\n\n"
+
+    "For events, the fields are:\n"
+    "Title (as above)\n"
+    "Description (as above)\n"
+    "Start is the date and time the event starts, in the format YYYY-MM-DDTHH:MM:SS.\n"
+    "End is the date and time the event ends, in the format YYYY-MM-DDTHH:MM:SS.\n"
+    "Usually, start and end will be close together.\n\n"
+
+    "All fields can take the value None if needed. This includes numeric ones (duration). Only do this if any other output is very unlikely to be useful to the user even as a rough guess. If the input is too malformed/vague to pick Task or Event, default to Task, with fields as None if appropriate. Prefer None to something completely generic or empty.\n\n"
+
+    "Reason about the duration and deadline (including the reason for the specific date of the month) in the provided field before outputting it; think about how long it may take and when it is due. Keep this to a few sentences max.\n\n"
+)
+
 class TaskModelOutput(BaseModel):
     type: Literal["Task"]
     title: str
@@ -71,48 +103,22 @@ def validateDatetime(string: str) -> Optional[datetime.datetime]:
 # If this code is changed then this will automatically invalidate the cache
 memory = Memory("cache")
 @memory.cache
-def runModel(description, iso, local, weekdayHelper): # pragma: no cover
+def runModel(system_prompt, user_prompt, iso=None, local=None, weekdayHelper=None): # pragma: no cover
+    if not (None in (iso, local, weekdayHelper)):
+        system_prompt = (
+            system_prompt +
+            f"\nLocal time: {local}\n"
+            f"ISO time: {iso}\n"
+            f"Weekday helper: {weekdayHelper}\n"
+        )
+
     completion = client.beta.chat.completions.parse(
-        model="gpt-4o-mini",
+        model="gpt-5-mini",
         messages=[
-            {"role": "system", "content":
-                "You are part of a time management application, responsible for translating the user's task description into a structured object."
-                "The first message will include some context. Use reasonable guesses for fields if unsure, but always use user input whrere possible."
-                "Use the string None if completely not applicable."
-                "Do not do anything which could mislead users into thinking properties have been set for the event that have not,"
-                "for example don't say 'recurring task' in the description or imply that the task repeats if you cannot actually set the task as recurring, as you cannot.\n\n"
-
-                "There are two types that can be returned: Task and Event. Task is a to-do item with an associated deadline, whereas Event is a calendar item with a time slot.\n"
-                "Make sure to pick the appropriate type. Tasks don't happen at a specific time, but must be completed at some point before the given time; they will be split into events by the system.\n"
-                "Events are calendar items with a specific time slot. For example, \"prepare for exam\" is a task, but \"go to exam\" is an event.\n\n"
-
-                "For tasks, the fields are:\n"
-                "Title should be a short description, ideally no more than 40 characters, that should be recognisable to remind the user which task is being shown on the calendar.\n"
-                "Description is longer and should include the details the user gave that are not stored in other fields.\n"
-                "Deadline is the date and time the task is due, in the format YYYY-MM-DDTHH:MM:SS. If it's due by a certain day but without a known time, use 23:59 on the previous day. Of course, if the time is known (e.g. 3pm), use that, on the same day given.\n"
-                "e.g. a deadline of 3rd Jan 2024 would ourput 2024-01-03T00:00:00, 8PM on the 5th Jan 2024 would output 2024-01-05T20:00:00.\n"
-                "DurationMinutes is the estimated time to complete the task in minutes. This is the time taken to actually do the thing specified in the task, for example a submission may take only 5-10 minutes, but revision may take a few hours.\n"
-                "For a submission task (submit homework by tomorrow) we assume this refers to the actual act of submitting so go for the lower end of the range.\n\n"
-
-                "For events, the fields are:\n"
-                "Title (as above)\n"
-                "Description (as above)\n"
-                "Start is the date and time the event starts, in the format YYYY-MM-DDTHH:MM:SS.\n"
-                "End is the date and time the event ends, in the format YYYY-MM-DDTHH:MM:SS.\n"
-                "Usually, start and end will be close together.\n\n"
-
-                "All fields can take the value None if needed. This includes numeric ones (duration). Only do this if any other output is very unlikely to be useful to the user even as a rough guess. If the input is too malformed/vague to pick Task or Event, default to Task, with fields as None if appropriate. Prefer None to something completely generic or empty.\n\n"
-
-                "Reason about the duration and deadline (including the reason for the specific date of the month) in the provided field before outputting it; think about how long it may take and when it is due. Keep this to a few sentences max.\n\n"
-                
-                f"Local time: {local}\n"
-                f"ISO time: {iso}"
-                f"Weekday helper: {weekdayHelper}"},
-            # {"role": "user", "content": "Previous tasks for context:\n[Task 1]\nTitle:Finish Visual Computing code\nDescription:The code for visual computing needs to finished and uploaded for all team members to see before we start on the report,\nDeadline:2025-02-27T23:59:00\nDurationMinutes:480"},
-            {"role": "user", "content": "User input:" + description},
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": "User input:" + user_prompt},
         ],
         response_format=ModelOutput,
-        temperature=0.0
     )
 
     return completion.choices[0].message.parsed

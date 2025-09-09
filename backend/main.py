@@ -57,7 +57,8 @@ global_db = SessionLocal()
 
 def initialize_achievements():
     """Check if achievements exist and insert them if missing."""
-    if global_db.query(Achievements).count() == 0:  
+    ahivements_do_not_exist = global_db.query(Achievements).count() == 0 
+    if ahivements_do_not_exist:
         for data in default_achievements:
             new_achievement = Achievements(**data)
             global_db.add(new_achievement)
