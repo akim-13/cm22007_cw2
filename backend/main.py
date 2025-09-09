@@ -22,23 +22,83 @@ import repeat_weekly
 
 from contextlib import asynccontextmanager
 
+def get_all_external_cal_sources(db: Session):
+    sources = [
+        source
+        for (source,) in (
+            db.query(Standalone_Event.eventBy)
+            .filter(Standalone_Event.eventBy.isnot(None))
+            .distinct()
+            .all()
+        )
+    ]
+    return sources
+
+
+def update_all_external_cals(db: Session):
+    sources = get_all_external_cal_sources(db)
+    for source in sources:
+        repeat_weekly.sync_db_with_external_cal(source, db)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    repeated_values = (
-    global_db.query(Standalone_Event.eventBy, func.count(Standalone_Event.eventBy).label("num_repeated"))
-    .group_by(Standalone_Event.eventBy)
-    .having(func.count(Standalone_Event.eventBy) > 1).all()
-    )
-    
-    for i in enumerate(repeated_values):
-        repeated_values[i[0]] = list(i[1])
+    ORM_Base.metadata.create_all(bind=engine)  
 
-    for i in repeated_values:
-        repeat_weekly.update(i[0], global_db)
-        
-    yield 
+    with SessionLocal() as db:
+        update_all_external_cals(db)
+
+
+    #↑ STARTUP CODE ↑
+    yield   # App runs.
+    #↓ SHUTDOWN CODE ↓
+
 
     print("Synchronised")
+
+# TODO: See what's needed from here.
+#
+# Move initial data seeding into startup and use a scoped session:
+# 
+# def initialise_achievements(db):
+#     if db.query(Achievements).count() == 0:
+#         for data in default_achievements:
+#             db.add(Achievements(**data))
+#         db.commit()
+# 
+# @asynccontextmanager
+# async def lifespan(app):
+#     ORM_Base.metadata.create_all(bind=engine)
+#     with SessionLocal() as db:
+#         initialise_achievements(db)
+#         if not db.query(User).filter(User.username == "joe").first():
+#             db.add(User(username="joe", hashedPassword="x", streakDays=0, currentPoints=0, stressLevel=0))
+#             db.commit()
+#     yield
+# 
+# 
+# Let FastAPI serialise return values; only use JSONResponse when needed:
+# 
+# @app.get("/get_user_tasks/{username}")
+# def get_user_tasks(username: str, db: Session = Depends(yield_db)):
+#     return tasks_service.get_user_tasks(username, db)
+# 
+# 
+# Fix verbs and forms for mutating endpoints (examples):
+# 
+# @app.post("/users")
+# def create_user(payload: CreateUser, db: Session = Depends(yield_db)):
+#     return user_service.create_user(payload.username, payload.password, db)
+# 
+# @app.post("/tasks")
+# def add_task(form: AddTaskForm = Depends(), db: Session = Depends(yield_db)):
+#     new_task = models.Task(...); db.add(new_task); db.commit(); db.refresh(new_task)
+#     task_scheduler.break_down_add_events(form.username, new_task.taskID, db)
+#     return {"success": True, "taskID": new_task.taskID}
+
+
+
+
 
 app = FastAPI(lifespan=lifespan)
 
@@ -52,8 +112,6 @@ app.add_middleware(
 )
 
 
-ORM_Base.metadata.create_all(bind=engine)  
-global_db = SessionLocal()
 
 def initialize_achievements():
     """Check if achievements exist and insert them if missing."""
@@ -255,7 +313,7 @@ def manual_update(db: Session = Depends(yield_db)):
         repeated_values[i[0]] = list(i[1])
 
     for i in repeated_values:
-        repeat_weekly.update(i[0], db)
+        repeat_weekly.sync_db_with_external_cal(i[0], db)
     return JSONResponse(status_code=200, content=repeated_values)
 
 

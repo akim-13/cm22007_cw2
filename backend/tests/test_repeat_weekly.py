@@ -8,7 +8,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from sqlalchemy.orm import Session
 from database import models
-from repeat_weekly import update  # Import the actual module where update() is defined
+from repeat_weekly import sync_db_with_external_cal  # Import the actual module where update() is defined
 
 @pytest.fixture
 def mock_db_session():
@@ -32,7 +32,7 @@ def test_update(mock_get_event, mock_db_session):
     }
 
     # Call the function
-    update(cal_link, mock_db_session)
+    sync_db_with_external_cal(cal_link, mock_db_session)
 
     # Verify that delete() was called
     mock_db_session.query.assert_called_with(models.Standalone_Event)
