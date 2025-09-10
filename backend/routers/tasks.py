@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from database import models
 from services import tasks_service, task_scheduler
-from main import yield_db
+from backend.database.deps import yield_db
 
 router = APIRouter()
 

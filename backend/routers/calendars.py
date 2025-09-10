@@ -3,9 +3,9 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 
 from database.models import Standalone_Event
-import calendar_to_events
-import repeat_weekly
-from main import yield_db
+import backend.tools.calendar_to_events as calendar_to_events
+from backend.tools import external_cal_sync
+from backend.database.deps import yield_db
 
 router = APIRouter()
 
@@ -18,7 +18,7 @@ def add_calendar(request: Request, data: dict, db: Session = Depends(yield_db)):
     db.query(Standalone_Event).filter(Standalone_Event.eventBy == url).delete()
     db.commit()
     
-    new_events = calendar_to_events.get_event(url)
+    new_events = calendar_to_events.get_events_from_external_cal_link(url)
     if "Valid link" in new_events:
         new_events = new_events.get("Valid link")
         for i in new_events:
@@ -49,6 +49,6 @@ def manual_update(db: Session = Depends(yield_db)):
         repeated_values[i[0]] = list(i[1])
 
     for i in repeated_values:
-        repeat_weekly.sync_db_with_external_cal(i[0], db)
+        external_cal_sync.sync_db_with_external_cal(i[0], db)
 
     return repeated_values

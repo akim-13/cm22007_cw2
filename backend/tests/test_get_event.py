@@ -8,7 +8,7 @@ sys.path.insert(
 from unittest.mock import patch, MagicMock
 import requests
 from ics import Calendar
-from calendar_to_events import get_event  
+from backend.tools.calendar_to_events import get_events_from_external_cal_link  
 
 import warnings
 
@@ -27,7 +27,7 @@ def test_valid_ics_file(mock_get, valid_ics):
     mock_response.text = valid_ics
     mock_get.return_value = mock_response
 
-    result = get_event("http://valid-link.com")
+    result = get_events_from_external_cal_link("http://valid-link.com")
 
     assert "Valid link" in result
     assert len(result["Valid link"]) == 1
@@ -39,7 +39,7 @@ def test_invalid_link(mock_get):
     """Test with an invalid link (requests failure)"""
     mock_get.side_effect = requests.exceptions.RequestException
 
-    result = get_event("http://invalid-link.com")
+    result = get_events_from_external_cal_link("http://invalid-link.com")
     
     assert result == {"Error": "Invalid link"}
 
@@ -52,7 +52,7 @@ def test_invalid_file_type(mock_get):
     mock_response.text = "<html><body>Error</body></html>"
     mock_get.return_value = mock_response
 
-    result = get_event("http://wrong-file.com")
+    result = get_events_from_external_cal_link("http://wrong-file.com")
 
     assert result == {"Error": "Invalid file type"}
 
@@ -65,7 +65,7 @@ def test_invalid_ics_format(mock_get):
     mock_response.text = "INVALID DATA"
     mock_get.return_value = mock_response
 
-    result = get_event("http://invalid-ics.com")
+    result = get_events_from_external_cal_link("http://invalid-ics.com")
 
     assert result == {"Error": "Invalid ics format"}
 
@@ -76,6 +76,6 @@ def test_http_error(mock_get):
     mock_response.status_code = 404
     mock_get.return_value = mock_response
 
-    result = get_event("http://not-found.com")
+    result = get_events_from_external_cal_link("http://not-found.com")
 
     assert result == {"Error": "Invalid link"}

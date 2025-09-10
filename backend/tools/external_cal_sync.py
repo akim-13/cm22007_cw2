@@ -1,7 +1,7 @@
 from database.models import Standalone_Event
 from sqlalchemy.orm import Session
 
-import calendar_to_events
+from backend.tools import calendar_to_events
 
 def sync_db_with_external_cal(cal_link, db):
     url = cal_link
@@ -9,7 +9,7 @@ def sync_db_with_external_cal(cal_link, db):
     db.query(Standalone_Event).filter(Standalone_Event.eventBy == url).delete()
     db.commit()
     
-    new_events = calendar_to_events.get_event(url)
+    new_events = calendar_to_events.get_events_from_external_cal_link(url)
     
     if "Valid link" in new_events:
         new_events = new_events.get("Valid link")

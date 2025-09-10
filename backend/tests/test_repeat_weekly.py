@@ -8,7 +8,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from sqlalchemy.orm import Session
 from database import models
-from repeat_weekly import sync_db_with_external_cal  # Import the actual module where update() is defined
+from backend.tools.external_cal_sync import sync_db_with_external_cal  # Import the actual module where update() is defined
 
 @pytest.fixture
 def mock_db_session():

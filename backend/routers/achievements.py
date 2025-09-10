@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from database.models import Achievements
 from services import achievements_service
-from main import yield_db
+from backend.database.deps import yield_db
 
 router = APIRouter()
 

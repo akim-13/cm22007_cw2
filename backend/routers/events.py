@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, Request, Form
 from sqlalchemy.orm import Session
 
 from services import event_service
-from main import yield_db
+from backend.database.deps import yield_db
 
 router = APIRouter()
 
