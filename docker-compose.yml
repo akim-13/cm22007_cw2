@@ -25,6 +25,20 @@ services:
       # On host it is not visible/is empty. This prevents polluting host with os specific binaries.
       - node_deps:/app/node_modules
 
+  #pre-commit:
+  #  build: ${HOST_BACKEND_ABSOLUTE_DIR:-./backend}
+  #  working_dir: ${HOST_BACKEND_ABSOLUTE_DIR:-/app}
+  #  entrypoint: ["pre-commit"]
+  #  volumes:
+  #    - ${HOST_BACKEND_ABSOLUTE_DIR:-./backend}:${HOST_BACKEND_ABSOLUTE_DIR:-/app}
+  #    - .git:${HOST_BACKEND_ABSOLUTE_DIR:-/app}/.git  # Mount git metadata so hooks can see history.
+  pre-commit:
+    build: ${HOST_BACKEND_ABSOLUTE_DIR:-./backend}
+    working_dir: /repo
+    entrypoint: ["pre-commit"]
+    volumes:
+      - .:/repo
+
 # Add a database service later .
 volumes:
   node_deps:

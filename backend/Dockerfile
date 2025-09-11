@@ -8,6 +8,9 @@ WORKDIR /app
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Install pre-commit stuff for code quality checks.
+RUN pip install --no-cache-dir pre-commit black isort flake8 flake8-bugbear mypy
+
 # Copy the rest of the source code.
 COPY . .
 
