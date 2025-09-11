@@ -1,6 +1,3 @@
-> [!IMPORTANT]
-> All pull requests from other branches must be made to the `dev` branch before passing it onto the master branch.
-
 ## Development setup with Docker 
 
 This project ships with a `docker-compose.yml` that runs both the backend (FastAPI) and the frontend (React).
