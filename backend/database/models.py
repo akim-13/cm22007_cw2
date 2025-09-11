@@ -4,7 +4,6 @@ from sqlalchemy.orm import relationship
 from .dbsetup import ORM_Base
 
 
-
 class User(ORM_Base):
     __tablename__ = "User"
 
@@ -24,9 +23,9 @@ class User(ORM_Base):
     
     @property
     def events(self):
-        return [event for task in self.tasks for event in task.events]  # returns all events related to this user    
+        # Returns all events related to this user.
+        return [event for task in self.tasks for event in task.events]  
     
-
 
 class Task(ORM_Base):
     __tablename__ = "Task"
@@ -46,7 +45,6 @@ class Task(ORM_Base):
     events = relationship("Event", back_populates="task", cascade='all, delete')
     
 
-
 class Event(ORM_Base):
     __tablename__ = "Event"
     
@@ -62,7 +60,6 @@ class Event(ORM_Base):
     def user(self):
         return self.task.user  # Access the user through the task without using extra joins
 
-    
 
 class Standalone_Event(ORM_Base):
     __tablename__ = "Standalone_Event"
@@ -81,7 +78,6 @@ class Standalone_Event(ORM_Base):
     user = relationship("User", back_populates="standalone_events")
     
 
-
 class Achievements(ORM_Base):
     __tablename__ = "Achievements"
     
@@ -91,6 +87,7 @@ class Achievements(ORM_Base):
     title = Column(String, nullable=False)
     description = Column(String, nullable=False)
     image_path = Column(String)    
+
 
 class Achievements_to_User(ORM_Base):
     __tablename__ = "Achievements_to_User"
