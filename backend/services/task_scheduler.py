@@ -1,3 +1,7 @@
+# !!!
+# DEPRECATED: To be replaced with autofilling a config.
+# !!!
+
 import json
 
 from config import DATETIME_FORMAT, API_KEY
@@ -6,7 +10,7 @@ from datetime import datetime
 from database import Task, Event
 from sqlalchemy.orm import Session
 from tools import convertToJson
-from services.event_service import get_standalone_events, get_events, delete_events_from_task
+from backend.services.events import get_standalone_events, get_events, delete_events_from_task
 from services.autofill import client
 from dotenv import load_dotenv
 load_dotenv()

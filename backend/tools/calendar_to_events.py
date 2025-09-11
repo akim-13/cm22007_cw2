@@ -1,38 +1,31 @@
-#database imports
-from sqlalchemy.orm import Session
-from datetime import datetime
-
-#ics file imports
 from ics import Calendar
 import requests
 
-def get_events_from_external_cal_link(link:str) -> dict: 
+def get_events_from_external_cal_link(link: str) -> dict:
+    """Fetch events from an external ICS calendar link and return them as lists of attributes."""
     eventList = []
 
     try:
         file = requests.get(link)
     except:
-        return {"Error":"Invalid link"}
+        return {"Error": "Invalid link"}
 
-    file_link_is_invalid = file.status_code != 200
-    if file_link_is_invalid: 
-        return {"Error":"Invalid link"}
+    if file.status_code != 200:
+        return {"Error": "Invalid link"}
 
     file_type = file.headers.get("Content-Type", "")
-
     if "text/calendar" not in file_type and "application/octet-stream" not in file_type:
-        return {"Error":"Invalid file type"}
+        return {"Error": "Invalid file type"}
 
     try:
         calendar = Calendar(file.text)
     except:
-        return {"Error":"Invalid ics format"}
+        return {"Error": "Invalid ics format"}
 
     for event in calendar.events:
-        start = (event.begin).datetime
-        end = (event.end).datetime
-
+        start = event.begin.datetime
+        end = event.end.datetime
         eventSingle = [event.name, start, end, event.description, link]
         eventList.append(eventSingle)
 
-    return {"Valid link":eventList}
+    return {"Valid link": eventList}

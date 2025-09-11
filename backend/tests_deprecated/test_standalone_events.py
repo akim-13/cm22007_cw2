@@ -8,7 +8,7 @@ from unittest.mock import MagicMock
 from unittest.mock import call
 from sqlalchemy.orm import Session
 
-from services.standalone_event_service import (
+from backend.services.standalone_events import (
     get_user_standalone_event_obj,
     get_user_standalone_events,
     delete_user_standalone_events,

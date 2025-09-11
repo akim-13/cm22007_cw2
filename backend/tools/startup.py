@@ -4,13 +4,15 @@ from config import default_achievements
 from backend.tools import external_cal_sync 
 
 
-def startup(db: Session):
+def startup(db: Session) -> None:
+    """Run initialisation steps for the application: sync calendars, init achievements, seed user."""
     update_all_external_cals(db)
     initialise_achievements(db)
     seed_joe_user(db)
 
 
-def get_all_external_cal_sources(db: Session):
+def get_all_external_cal_sources(db: Session) -> list[str]:
+    """Return all unique external calendar sources stored in the database."""
     sources = [
         source
         for (source,) in (
@@ -20,26 +22,27 @@ def get_all_external_cal_sources(db: Session):
             .all()
         )
     ]
+
     return sources
 
 
-def update_all_external_cals(db: Session):
+def update_all_external_cals(db: Session) -> None:
+    """Resynchronise all external calendar sources with the database."""
     sources = get_all_external_cal_sources(db)
     for source in sources:
         external_cal_sync.sync_db_with_external_cal(source, db)
 
 
-def initialise_achievements(db: Session):
-    """Check if achievements exist and insert them if missing."""
+def initialise_achievements(db: Session) -> None:
+    """Insert default achievements if none exist in the database."""
     if db.query(Achievements).count() == 0:
         for data in default_achievements:
             db.add(Achievements(**data))
         db.commit()
-    else:
-        print("Achievements already exist, skipping population.")
 
 
-def seed_joe_user(db: Session):
+def seed_joe_user(db: Session) -> None:
+    """Create a placeholder 'joe' user if it does not exist."""
     user = db.query(User).filter(User.username == "joe").first()
     if not user:
         db.add(User(username="joe", hashedPassword="x", streakDays=0, currentPoints=0, stressLevel=0))

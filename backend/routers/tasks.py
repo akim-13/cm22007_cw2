@@ -2,8 +2,9 @@ from datetime import datetime
 from fastapi import APIRouter, Depends, Form, HTTPException
 from sqlalchemy.orm import Session
 
+from backend.services import tasks
 from database import models
-from services import tasks_service, task_scheduler
+from services import task_scheduler
 from backend.database.deps import yield_db
 
 PRIORITY_LOW = 0
@@ -22,9 +23,14 @@ def create_task(
     deadline: datetime = Form(...),
     db: Session = Depends(yield_db),
 ) -> dict:  # pragma: no cover
+    """Create a new task, save it in the database, and schedule events for it."""
+
     if priority not in [PRIORITY_LOW, PRIORITY_MID, PRIORITY_HIGH]:
-        raise HTTPException(status_code=400, detail="Invalid priority value. Must be 0 (low), 1 (medium), or 2 (high).")
-    
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid priority value. Must be 0 (low), 1 (medium), or 2 (high).",
+        )
+
     new_task = models.Task(
         title=title,
         description=description,
@@ -52,7 +58,9 @@ def update_task(
     deadline: datetime = Form(...),
     db: Session = Depends(yield_db),
 ) -> dict:  # pragma: no cover
-    response = tasks_service.edit_task(
+    """Update an existing task and reschedule its events."""
+
+    response = tasks.edit_task(
         editID,
         {
             "title": title,
@@ -68,45 +76,35 @@ def update_task(
 
 
 @router.delete("/{taskID}")
-def delete_task(
-    taskID: int,
-    db: Session = Depends(yield_db),
-) -> dict:
-    response = tasks_service.delete_task(taskID, db)
+def delete_task(taskID: int, db: Session = Depends(yield_db)) -> dict:
+    """Delete a task and its events."""
+    response = tasks.delete_task(taskID, db)
     return response
 
 
 @router.put("/{taskID}/complete")
-def complete_task(
-    taskID: int,
-    db: Session = Depends(yield_db),
-) -> dict:
-    response = tasks_service.set_task_complete(taskID, db)
+def complete_task(taskID: int, db: Session = Depends(yield_db)) -> dict:
+    """Mark a task as complete and update achievements."""
+    response = tasks.set_task_complete(taskID, db)
     return response
 
 
 @router.put("/{taskID}/incomplete")
-def incomplete_task(
-    taskID: int,
-    db: Session = Depends(yield_db),
-) -> dict:
-    response = tasks_service.set_task_incomplete(taskID, db)
+def incomplete_task(taskID: int, db: Session = Depends(yield_db)) -> dict:
+    """Mark a task as incomplete and update achievements."""
+    response = tasks.set_task_incomplete(taskID, db)
     return response
 
 
 @router.get("/user/{username}")
-def list_user_tasks(
-    username: str,
-    db: Session = Depends(yield_db),
-) -> list[dict]:
-    response = tasks_service.get_user_tasks(username, db)
+def list_user_tasks(username: str, db: Session = Depends(yield_db)) -> list[dict]:
+    """Return all tasks for a user."""
+    response = tasks.get_user_tasks(username, db)
     return response
 
 
 @router.get("/user/{username}/latest")
-def get_latest_user_task(
-    username: str,
-    db: Session = Depends(yield_db),
-) -> dict:
-    response = tasks_service.get_latest_user_task(username, db)
+def get_latest_user_task(username: str, db: Session = Depends(yield_db)) -> dict:
+    """Return the most recent task for a user."""
+    response = tasks.get_latest_user_task(username, db)
     return response

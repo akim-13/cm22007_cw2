@@ -2,7 +2,7 @@ import pytest
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, scoped_session
-from backend.services.user_service import *
+from backend.services.users import *
 from database.dbsetup import ORM_Base
 
 engine = create_engine("sqlite:///:memory:", echo=False)

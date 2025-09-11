@@ -10,17 +10,16 @@ router = APIRouter()
 
 
 @router.post("/", status_code=200)
-def add_calendar(
-    data: dict,
-    db: Session = Depends(yield_db),
-) -> dict[str, str]:
+def add_calendar(data: dict, db: Session = Depends(yield_db)) -> dict[str, str]:
+    """Add events from an external ICS calendar link into the database."""
+
     url = data.get("ics_url")
     if not url:
         return {"Error": "No ics URL provided"}
 
     db.query(Standalone_Event).filter(Standalone_Event.eventBy == url).delete()
     db.commit()
-    
+
     new_events = calendar_to_events.get_events_from_external_cal_link(url)
     if "Valid link" in new_events:
         new_events = new_events.get("Valid link")
@@ -37,21 +36,25 @@ def add_calendar(
                 standaloneEventName=i[0],
                 standaloneEventDescription=i[3],
                 eventBy=i[4],
-                username="joe",
+                username="joe",  # placeholder
             )
             db.add(new_event)
         db.commit()
+
         return {"status": "complete"}
     else:
         raise HTTPException(status_code=400, detail=new_events.get("Error"))
 
 
 @router.get("/sync_all")
-def sync_all_calendars(
-    db: Session = Depends(yield_db),
-) -> list[list]:
+def sync_all_calendars(db: Session = Depends(yield_db)) -> list[list]:
+    """Resynchronise all duplicate external calendar sources and return their counts."""
+
     repeated_values = (
-        db.query(Standalone_Event.eventBy, func.count(Standalone_Event.eventBy).label("num_repeated"))
+        db.query(
+            Standalone_Event.eventBy,
+            func.count(Standalone_Event.eventBy).label("num_repeated"),
+        )
         .group_by(Standalone_Event.eventBy)
         .having(func.count(Standalone_Event.eventBy) > 1)
         .all()

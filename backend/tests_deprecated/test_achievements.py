@@ -7,7 +7,7 @@ sys.path.insert(
 
 from config import DATABASE_URL
 from database import models, SessionLocal
-from services.achievements_service import get_from_user, update_from_user
+from backend.services.achievements import get_from_user, update_from_user
 from database.dbsetup import ORM_Base, engine, SessionLocal
 
 

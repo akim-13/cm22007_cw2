@@ -97,7 +97,12 @@ def edit_standalone_event(
 
 def get_events_from_task(taskID: int, db: Session) -> dict:
     """Return all events belonging to a given task."""
-    events = db.query(Task).filter(Task.taskID == taskID).first().events
+    tasks = db.query(Task).filter(Task.taskID == taskID).first()
+
+    if tasks is None:
+        return {"events": []}
+
+    events = tasks.events
     return {"events": [convertToJson(event) for event in events]}    
 
 

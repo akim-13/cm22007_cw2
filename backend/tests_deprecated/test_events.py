@@ -6,7 +6,7 @@ from sqlalchemy.orm import sessionmaker, scoped_session
 from database.dbsetup import ORM_Base
 from database.models import Task, User, Event, Standalone_Event
 
-from services import event_service
+from backend.services import events
 
 username = "joe"
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -96,33 +96,33 @@ def test_get_events(db_session):
     """test whether filtering for a time interval works properly in the get_events function"""
     add_tasks(db_session); add_events(db_session)
     
-    events = event_service.get_events(username, (datetime(2025, 1, 1), datetime(2026, 1, 1)), db_session).get("events")
+    events = events.get_events(username, (datetime(2025, 1, 1), datetime(2026, 1, 1)), db_session).get("events")
     assert len(events) == 8
     
-    events = event_service.get_events(username, (datetime(2025, 4, 22), datetime(2025, 4, 28)), db_session).get("events")
+    events = events.get_events(username, (datetime(2025, 4, 22), datetime(2025, 4, 28)), db_session).get("events")
     assert len(events) == 3
     
 def test_edit_event(db_session):
     """Edit an event to change its time slot"""
     add_tasks(db_session); add_events(db_session)
     
-    events = event_service.get_events_from_task(1, db_session).get("events")
+    events = events.get_events_from_task(1, db_session).get("events")
     assert len(events) == 4
     eventID = events[0]["eventID"]
     
-    event_service.edit_task_event(eventID, datetime(2025, 4, 22, 12), datetime(2025, 4, 22, 14), db_session)
+    events.edit_task_event(eventID, datetime(2025, 4, 22, 12), datetime(2025, 4, 22, 14), db_session)
     
     # Should be 5 instead of 4 because we editing the event above to be in this time slot as well
-    events = event_service.get_events(username, (datetime(2025, 4, 22), datetime(2025, 4, 29)), db_session).get("events")
+    events = events.get_events(username, (datetime(2025, 4, 22), datetime(2025, 4, 29)), db_session).get("events")
     assert len(events) == 5
     
 def test_get_standalone_event(db_session):
     add_standalone_events(db_session)
-    sv = event_service.get_standalone_events(username, (datetime(2025, 1, 1), datetime(2026, 1, 1)), db_session).get("standalone_events")
+    sv = events.get_standalone_events(username, (datetime(2025, 1, 1), datetime(2026, 1, 1)), db_session).get("standalone_events")
     assert sv is not None
     assert len(sv) == 2
     
-    sv = event_service.get_standalone_events(username, (datetime(2025, 5, 1), datetime(2026, 1, 1)), db_session).get("standalone_events")
+    sv = events.get_standalone_events(username, (datetime(2025, 5, 1), datetime(2026, 1, 1)), db_session).get("standalone_events")
     assert sv is not None
     assert len(sv) == 1
     assert sv[0]["standaloneEventName"] == "Boxing practice"

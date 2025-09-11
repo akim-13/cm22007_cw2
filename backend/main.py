@@ -35,6 +35,8 @@
 #       return response
 #
 # - Docstrings.
+# - Logging.
+# - GH actions + pre-commit for code quality.
 
 
 import uvicorn
