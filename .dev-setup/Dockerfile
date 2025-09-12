@@ -8,4 +8,7 @@ RUN apt-get update \
  && apt-get install -y --no-install-recommends git \
  && rm -rf /var/lib/apt/lists/*
 
+# Configure git to consider /app a safe directory (needed for CI).
+RUN git config --global --add safe.directory /app
+
 RUN pip install --no-cache-dir pre-commit black isort flake8 flake8-bugbear mypy
