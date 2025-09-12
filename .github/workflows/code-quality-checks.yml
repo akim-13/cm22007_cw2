@@ -21,7 +21,7 @@ jobs:
             pre-commit-
 
       - name: Build pre-commit image
-        run: docker compose build pre-commit
+        run: docker build -t pre-commit-check -f .dev-setup/Dockerfile .
 
       - name: Run pre-commit checks
         run: |
