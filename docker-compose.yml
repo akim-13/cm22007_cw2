@@ -11,8 +11,6 @@ services:
       OPENAI_API_KEY: ${OPENAI_API_KEY}
     volumes:
       - ${HOST_BACKEND_ABSOLUTE_DIR:-./backend}:${HOST_BACKEND_ABSOLUTE_DIR:-/app}
-    # depends_on:
-    #   - db
 
   frontend:
     build: ./frontend
@@ -25,21 +23,14 @@ services:
       # On host it is not visible/is empty. This prevents polluting host with os specific binaries.
       - node_deps:/app/node_modules
 
-  #pre-commit:
-  #  build: ${HOST_BACKEND_ABSOLUTE_DIR:-./backend}
-  #  working_dir: ${HOST_BACKEND_ABSOLUTE_DIR:-/app}
-  #  entrypoint: ["pre-commit"]
-  #  volumes:
-  #    - ${HOST_BACKEND_ABSOLUTE_DIR:-./backend}:${HOST_BACKEND_ABSOLUTE_DIR:-/app}
-  #    - .git:${HOST_BACKEND_ABSOLUTE_DIR:-/app}/.git  # Mount git metadata so hooks can see history.
   pre-commit:
-    build: ${HOST_BACKEND_ABSOLUTE_DIR:-./backend}
-    working_dir: /repo
+    build: .dev-setup
+    working_dir: /app
     entrypoint: ["pre-commit"]
     volumes:
-      - .:/repo
+      - .:/app
+      - pre-commit-cache:/root/.cache/pre-commit
 
-# Add a database service later .
 volumes:
   node_deps:
-#   db_data:
+  pre-commit-cache:

@@ -1,7 +1,7 @@
 > [!IMPORTANT]
 > All pull requests from other branches must be made to the `dev` branch before passing it onto the master branch.
 
-## Development setup with Docker 
+## Development setup with Docker
 
 This project ships with a `docker-compose.yml` that runs both the backend (FastAPI) and the frontend (React).
 
@@ -19,20 +19,31 @@ HOST_BACKEND_ABSOLUTE_DIR=/absolute/path/to/backend/dir
 
 The last variable is optional, `docker compose` will fall back to a default value if unset. However, it is recommended to set it for a better debugging experience.
 
+### Pre-commit hooks
+As the name implies, these hooks (scripts) are run before you commit. They won't allow you to commit your changes unless all tests pass. They're also run automatically on GitHub.
+
+#### Install pre-commit hook
+Copy the `pre-commit` hook from `.dev-setup/pre-commit` to `.git/hooks` and make it executable. E.g., on Linux:
+
+```bash
+cp .dev-setup/pre-commit .git/hooks
+cmod +x .git/hooks/pre-commit
+```
+
 ### Start the stack
 From the project root:
 
 ```bash
-docker compose up --build 
+docker compose up --build
 ```
 
-- Frontend: http://localhost:3000  
+- Frontend: http://localhost:3000
 - Backend: http://localhost:8000 (FastAPI docs at /docs)
 
 Edits to your code are reflected immediately because the repo is mounted into the containers.
 
 ### Stop the stack
 
-```bash 
-docker compose down 
+```bash
+docker compose down
 ```

@@ -3,13 +3,10 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Leverage Docker layer caching (if requirements don't change, 
+# Leverage Docker layer caching (if requirements don't change,
 # this and previous commands aren't re-run).
 COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
-
-# Install pre-commit stuff for code quality checks.
-RUN pip install --no-cache-dir pre-commit black isort flake8 flake8-bugbear mypy
 
 # Copy the rest of the source code.
 COPY . .
