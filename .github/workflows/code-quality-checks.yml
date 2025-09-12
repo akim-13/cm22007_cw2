@@ -23,6 +23,14 @@ jobs:
       - name: Build pre-commit image
         run: docker build -t pre-commit-check -f .dev-setup/Dockerfile .
 
+      - name: Debug repo inside container
+        run: |
+            docker run --rm \
+            -v ${{ github.workspace }}:/app \
+            -w /app \
+            pre-commit-check \
+            bash -c "ls -la /app && ls -la /app/.git && git status"
+
       - name: Run pre-commit checks
         run: |
             docker run --rm \
