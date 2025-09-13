@@ -1,9 +1,10 @@
 import hashlib
 
-from database.models import Achievements, User
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
-from tools import convertToJson
+
+from backend.database.models import Achievements, User
+from backend.tools.jsonify import convertToJson
 
 
 def get_user_points(username: str, db: Session) -> dict:

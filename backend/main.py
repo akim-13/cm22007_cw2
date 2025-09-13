@@ -36,17 +36,18 @@
 #
 # - Docstrings.
 # - Logging.
-# - GH actions + pre-commit for code quality.
 
 
 from contextlib import asynccontextmanager
 
 import uvicorn
-from database import ORM_Base, SessionLocal, engine
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import achievements, calendars, events, tasks, users
-from tools.startup import startup
+
+from backend.database.dbsetup import SessionLocal, engine
+from backend.database.models import ORM_Base
+from backend.routers import achievements, calendars, events, tasks, users
+from backend.tools.startup import startup
 
 
 @asynccontextmanager

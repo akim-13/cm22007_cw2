@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from config import DATETIME_FORMAT
+from backend.config import DATETIME_FORMAT
 
 
 def convertToJson(obj: object) -> dict:

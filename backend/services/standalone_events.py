@@ -1,8 +1,9 @@
 from datetime import datetime
 
-from database.models import Standalone_Event
 from sqlalchemy.orm import Session
-from tools import convertToJson
+
+from backend.database.models import Standalone_Event
+from backend.tools.jsonify import convertToJson
 
 
 def get_user_standalone_event_obj(username: str, db: Session) -> list[Standalone_Event]:

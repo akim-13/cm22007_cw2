@@ -1,8 +1,8 @@
-from database.models import Achievements
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from backend.database.deps import yield_db
+from backend.database.models import Achievements
 from backend.services import achievements
 
 router = APIRouter()

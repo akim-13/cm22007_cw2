@@ -1,7 +1,7 @@
-from config import default_achievements
-from database.models import Achievements, Standalone_Event, User
 from sqlalchemy.orm import Session
 
+from backend.config import default_achievements
+from backend.database.models import Achievements, Standalone_Event, User
 from backend.tools import external_cal_sync
 
 

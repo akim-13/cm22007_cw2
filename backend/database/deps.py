@@ -1,4 +1,4 @@
-from database import SessionLocal
+from backend.database.dbsetup import SessionLocal
 
 
 def yield_db():

@@ -1,10 +1,10 @@
 from datetime import datetime
 
 from fastapi import APIRouter, Depends, Form
-from services import events
 from sqlalchemy.orm import Session
 
 from backend.database.deps import yield_db
+from backend.services import events
 
 router = APIRouter()
 

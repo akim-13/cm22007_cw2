@@ -1,6 +1,6 @@
-from database.models import Standalone_Event
 from sqlalchemy.orm import Session
 
+from backend.database.models import Standalone_Event
 from backend.tools import calendar_to_events
 
 

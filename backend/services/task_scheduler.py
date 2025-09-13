@@ -6,11 +6,11 @@ import json
 from datetime import datetime
 from typing import Any
 
-from config import API_KEY, DATETIME_FORMAT
 from dotenv import load_dotenv
 from openai import OpenAI
 from sqlalchemy.orm import Session
 
+from backend.config import API_KEY, DATETIME_FORMAT
 from backend.database.models import Event, Task
 from backend.services.events import delete_events_from_task, get_events, get_standalone_events
 from backend.tools.jsonify import convertToJson

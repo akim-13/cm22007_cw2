@@ -1,7 +1,7 @@
-from database.models import Achievements, Achievements_to_User, User
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
+from backend.database.models import Achievements, Achievements_to_User, User
 from backend.tools.jsonify import convertToJson
 
 

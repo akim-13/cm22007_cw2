@@ -1,10 +1,11 @@
 from datetime import datetime
 
-from config import DATETIME_FORMAT
-from database.models import Event, Standalone_Event, Task, User
 from sqlalchemy import desc
 from sqlalchemy.orm import Session
-from tools import convertToJson
+
+from backend.config import DATETIME_FORMAT
+from backend.database.models import Event, Standalone_Event, Task, User
+from backend.tools.jsonify import convertToJson
 
 
 def get_events(username: str, interval: tuple[datetime, datetime], db: Session) -> dict:

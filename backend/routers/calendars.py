@@ -1,9 +1,9 @@
-from database.models import Standalone_Event
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from backend.database.deps import yield_db
+from backend.database.models import Standalone_Event
 from backend.tools import calendar_to_events, external_cal_sync
 
 router = APIRouter()
