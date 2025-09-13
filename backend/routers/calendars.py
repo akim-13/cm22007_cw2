@@ -44,7 +44,7 @@ def add_calendar(data: dict, db: Session = Depends(yield_db)) -> dict[str, str]:
         raise HTTPException(status_code=400, detail=new_events_dict.get("Error"))
 
 
-@router.get("/sync_all")
+@router.post("/sync_all")
 def sync_all_calendars(db: Session = Depends(yield_db)) -> list[list]:
     """Resynchronise all duplicate external calendar sources and return their counts."""
 

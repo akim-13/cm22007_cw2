@@ -1,43 +1,4 @@
-# TODO: See what's needed from here.
-#
-# Fix verbs and forms for mutating endpoints (examples):
-#
-# @app.post("/users")
-# def create_user(payload: CreateUser, db: Session = Depends(yield_db)):
-#     return user_service.create_user(payload.username, payload.password, db)
-#
-# @app.post("/tasks")
-# def add_task(form: AddTaskForm = Depends(), db: Session = Depends(yield_db)):
-#     new_task = models.Task(...); db.add(new_task); db.commit(); db.refresh(new_task)
-#     task_scheduler.break_down_add_events(form.username, new_task.taskID, db)
-#     return {"success": True, "taskID": new_task.taskID}
-
-# TODO:
-# - Return type annotations.
-# - Replace long func signatures with Pydantic models, e.g.:
-#   @router.put("/{taskID}")
-#   def update_task(
-#       payload: TaskUpdate,
-#       db: Session = Depends(yield_db),
-#   ) -> dict:
-#       response = tasks_service.edit_task(
-#           payload.editID,
-#           {
-#               "title": payload.title,
-#               "description": payload.description,
-#               "duration": payload.duration,
-#               "priority": payload.priority,
-#               "deadline": payload.deadline,
-#           },
-#           db,
-#       )
-#       task_scheduler.break_down_add_events("joe", payload.editID, db)
-#       return response
-#
-# - Docstrings.
-# - Logging.
-
-
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
 import uvicorn
@@ -49,9 +10,13 @@ from backend.database.models import ORM_Base
 from backend.routers import achievements, calendars, events, tasks, users
 from backend.tools.startup import startup
 
+# TODO:
+# - Docstrings enforcement.
+# - Logging.
+
 
 @asynccontextmanager
-async def lifespan(_: FastAPI):
+async def lifespan(_: FastAPI) -> AsyncGenerator[None, None]:
     ORM_Base.metadata.create_all(bind=engine)
 
     with SessionLocal() as db:
@@ -76,12 +41,12 @@ app.add_middleware(
 )
 
 
-def run_app():  # pragma: no cover
-    app.include_router(users.router, prefix="/users", tags=["users"])
-    app.include_router(achievements.router, prefix="/achievements", tags=["achievements"])
-    app.include_router(tasks.router, prefix="/tasks", tags=["tasks"])
-    app.include_router(events.router, prefix="/events", tags=["events"])
-    app.include_router(calendars.router, prefix="/calendars", tags=["calendars"])
+def run_app() -> FastAPI:  # pragma: no cover
+    app.include_router(users.router, prefix="/users", tags=["Users"])
+    app.include_router(achievements.router, prefix="/achievements", tags=["Achievements"])
+    app.include_router(tasks.router, prefix="/tasks", tags=["Tasks"])
+    app.include_router(events.router, prefix="/events", tags=["Events"])
+    app.include_router(calendars.router, prefix="/calendars", tags=["Calendars"])
 
     return app
 

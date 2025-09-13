@@ -115,8 +115,12 @@ memory = Memory("cache")
 
 @memory.cache
 def runModel(
-    system_prompt, user_prompt, iso=None, local=None, weekdayHelper=None
-):  # pragma: no cover
+    system_prompt: str,
+    user_prompt: str,
+    iso: Optional[str] = None,
+    local: Optional[str] = None,
+    weekdayHelper: Optional[str] = None,
+) -> ModelOutput:  # pragma: no cover
     if not (None in (iso, local, weekdayHelper)):
         system_prompt = (
             system_prompt + f"\nLocal time: {local}\n"
@@ -155,7 +159,9 @@ def gen(description: str, currentDate: datetime.datetime) -> Task | Event:
     return parseOutput(out.taskOrEvent, currentDate)
 
 
-def parseOutput(taskOrEvent, currentDate):
+def parseOutput(
+    taskOrEvent: TaskModelOutput | EventModelOutput, currentDate: datetime.datetime
+) -> Task | Event:
     if taskOrEvent.type == "Event":
         event_out = taskOrEvent
         result = Event(

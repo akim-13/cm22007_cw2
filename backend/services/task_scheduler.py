@@ -46,7 +46,7 @@ only for sleep. IT IS STRICTLY FORBIDDEN TO SCHEDLUE ANYTHING BETWEEN THE TIMES
 """
 
 
-def get_user_prompt(task: Task, calendar: list[dict[str, Any]]):
+def get_user_prompt(task: Task, calendar: list[dict[str, Any]]) -> str:
     return f"""This is my task:
 {convertToJson(task)}
 A priority of 2 is most important.
@@ -55,7 +55,7 @@ This is my calendar (events only have start and end times to save space):
 {calendar}"""
 
 
-def breakdown_task_LLM(user_prompt):
+def breakdown_task_LLM(user_prompt: str) -> dict:
     try:
         completion = client.chat.completions.create(
             model="gpt-5-mini",

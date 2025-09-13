@@ -15,7 +15,7 @@ def get_points(username: str, db: Session = Depends(yield_db)) -> dict:
     return users.get_user_points(username, db)
 
 
-@router.get("/{username}/autofill")
+@router.post("/{username}/autofill")
 def generate_autofill(
     username: str,
     description: str,
