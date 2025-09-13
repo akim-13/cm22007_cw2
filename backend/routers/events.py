@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, Form
+from fastapi import APIRouter, Depends, Form, Path
 from sqlalchemy.orm import Session
 
 from backend.database.deps import yield_db
@@ -35,7 +35,7 @@ def delete_events_from_task(taskID: int, db: Session = Depends(yield_db)) -> dic
 
 @router.put("/task_event/{editID}")
 def update_task_event(
-    editID: int = Form(),
+    editID: int = Path(),
     start: datetime = Form(),
     end: datetime = Form(),
     db: Session = Depends(yield_db),

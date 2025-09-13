@@ -10,7 +10,6 @@
         "compose",
         "up",
         "--build",
-        "--exit-code-from", "backend"
       ],
       "console": "integratedTerminal"
     }
