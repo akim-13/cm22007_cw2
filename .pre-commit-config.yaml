@@ -22,7 +22,9 @@ repos:
     rev: v1.11.2
     hooks:
       - id: mypy
-        additional_dependencies: [sqlalchemy-stubs]
+        additional_dependencies:
+          - sqlalchemy-stubs
+          - types-requests
 
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.6.0
