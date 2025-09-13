@@ -10,7 +10,7 @@ Create a `.env` file in the repo root:
 
 ```bash
 OPENAI_API_KEY=sk-yourkeyhere
-HOST_BACKEND_ABSOLUTE_DIR=/absolute/path/to/backend/dir
+HOST_REPO_ABSOLUTE_PATH=/absolute/path/to/this/repo
 ```
 
 The last variable is optional, `docker compose` will fall back to a default value if unset. However, it is recommended to set it for a better debugging experience.

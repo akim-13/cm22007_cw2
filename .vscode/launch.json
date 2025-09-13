@@ -9,7 +9,8 @@
       "runtimeArgs": [
         "compose",
         "up",
-        "--build"
+        "--build",
+        "--exit-code-from", "backend"
       ],
       "console": "integratedTerminal"
     }
