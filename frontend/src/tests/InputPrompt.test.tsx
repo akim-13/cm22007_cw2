@@ -30,7 +30,7 @@ describe("InputPrompt", () => {
 
     // Check if input field is rendered
     expect(screen.getByPlaceholderText("Type your prompt...")).toBeInTheDocument();
-    
+
     // Check if both buttons are rendered
     expect(screen.getByTestId("check-icon")).toBeInTheDocument();
     expect(screen.getByTestId("plus-icon")).toBeInTheDocument();

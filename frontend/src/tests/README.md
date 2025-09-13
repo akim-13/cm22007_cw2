@@ -75,4 +75,4 @@ If you encounter issues with the tests:
 1. Make sure all dependencies are installed with `npm install --legacy-peer-deps`
 2. Check that the Jest configuration in `jest.config.js` is correct
 3. Ensure that the TypeScript configuration in `tsconfig.jest.json` is correct
-4. If you see errors related to ESM modules, check that the `type` field in `package.json` is set to `commonjs` 
+4. If you see errors related to ESM modules, check that the `type` field in `package.json` is set to `commonjs`

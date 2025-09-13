@@ -38,4 +38,4 @@ console.error = (...args: any[]) => {
     return;
   }
   originalConsoleError(...args);
-}; 
+};

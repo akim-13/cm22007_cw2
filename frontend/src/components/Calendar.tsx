@@ -34,7 +34,7 @@ function convEvent(event: any) {
 const Calendar: React.FC<any> = ({ standaloneEvents, taskEvents, tasks, setIsModalOpen, setModalTypeLocked, newFCEvent, initialExtendedProps, setModalType, fetchAll, setIsLoading }) => {
     const [isAchievementModalOpen, setIsAchievementModalOpen] = useState(false);
     const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
-    const username = "joe"; 
+    const username = "joe";
 
     const handleEventClick = (info: any) => {
         newFCEvent.current = convEvent(info.event);

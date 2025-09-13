@@ -72,7 +72,7 @@ export const getFormData = (currentFCEvent: FCEvent, modalType: string) => {
 };
 
 export const sendAddOrEditRequest = async (formData: FormData, editMode: boolean, modalType: string) => {
-    const operation = 
+    const operation =
         (editMode
             ? ("edit_" + modalType)
             : ("add_" + modalType)
@@ -84,15 +84,15 @@ export const sendAddOrEditRequest = async (formData: FormData, editMode: boolean
     return response;
 };
 
-const TaskEventModal: React.FC<TaskEventModalProps> = ({ 
-    isModalOpen, setIsModalOpen, 
+const TaskEventModal: React.FC<TaskEventModalProps> = ({
+    isModalOpen, setIsModalOpen,
     modalTypeLocked,
     newFCEvent,
     modalType, setModalType,
     fetchAll,
     setIsLoading
 }) => {
-    const [, forceUpdate] = useState(0); 
+    const [, forceUpdate] = useState(0);
 
     const handleInputChange = async (
       event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -106,7 +106,7 @@ const TaskEventModal: React.FC<TaskEventModalProps> = ({
             newFCEvent.current[name as keyof Pick<FCEvent, "title" | "start" | "end">] = value as string;
         } else {
             newFCEvent.current.extendedProps = {
-                ...newFCEvent.current.extendedProps, 
+                ...newFCEvent.current.extendedProps,
                 [name]: value
             };
         }

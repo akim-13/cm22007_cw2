@@ -20,4 +20,4 @@ module.exports = {
   transformIgnorePatterns: [
     '/node_modules/(?!(@fullcalendar|axios)/)'
   ],
-}; 
+};

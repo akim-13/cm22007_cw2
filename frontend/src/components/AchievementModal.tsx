@@ -12,13 +12,13 @@ interface Achievement {
 interface AchievementModalProps {
   isOpen: boolean;
   onClose: () => void;
-  username?: string; 
+  username?: string;
 }
 
-const AchievementModal: React.FC<AchievementModalProps> = ({ 
-  isOpen, 
-  onClose, 
-  username = "joe" 
+const AchievementModal: React.FC<AchievementModalProps> = ({
+  isOpen,
+  onClose,
+  username = "joe"
 }) => {
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [userPoints, setUserPoints] = useState<number>(0);
@@ -77,7 +77,7 @@ const AchievementModal: React.FC<AchievementModalProps> = ({
       console.error("Error fetching achievements:", error);
     }
   };
-  
+
   const fetchUserPoints = async () => {
     try {
       console.log("Fetching points for user:", username);
@@ -104,17 +104,17 @@ const AchievementModal: React.FC<AchievementModalProps> = ({
 
   if (loading) {
     return (
-      <div style={{ 
-        position: "fixed", 
-        top: 0, 
-        left: 0, 
-        right: 0, 
-        bottom: 0, 
-        backgroundColor: "rgba(0,0,0,0.5)", 
-        display: "flex", 
-        justifyContent: "center", 
-        alignItems: "center", 
-        zIndex: 1000 
+      <div style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: "rgba(0,0,0,0.5)",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        zIndex: 1000
       }}>
         <div>Loading achievements...</div>
       </div>
@@ -122,28 +122,28 @@ const AchievementModal: React.FC<AchievementModalProps> = ({
   }
 
   return (
-    <div style={{ 
-      position: "fixed", 
-      top: 0, 
-      left: 0, 
-      right: 0, 
-      bottom: 0, 
-      backgroundColor: "rgba(0,0,0,0.5)", 
-      display: "flex", 
-      justifyContent: "center", 
-      alignItems: "center", 
-      zIndex: 1000 
+    <div style={{
+      position: "fixed",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: "rgba(0,0,0,0.5)",
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      zIndex: 1000
     }}>
       <div style={modalContainerStyle}>
         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "15px" }}>
           <h2 style={{ margin: 0 }}>Achievements</h2>
-          <button 
-            onClick={onClose} 
-            style={{ 
-              background: "none", 
-              border: "none", 
-              cursor: "pointer", 
-              fontSize: "16px", 
+          <button
+            onClick={onClose}
+            style={{
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              fontSize: "16px",
               color: isDarkMode ? "#fff" : "#000"
             }}
           >
@@ -156,20 +156,20 @@ const AchievementModal: React.FC<AchievementModalProps> = ({
         </div>
 
         <div style={{ marginBottom: "15px" }}>
-          <button 
-            onClick={() => setFilter("all")} 
+          <button
+            onClick={() => setFilter("all")}
             style={buttonStyle(filter === "all")}
           >
             All
           </button>
-          <button 
-            onClick={() => setFilter("completed")} 
+          <button
+            onClick={() => setFilter("completed")}
             style={buttonStyle(filter === "completed")}
           >
             Completed
           </button>
-          <button 
-            onClick={() => setFilter("locked")} 
+          <button
+            onClick={() => setFilter("locked")}
             style={buttonStyle(filter === "locked")}
           >
             Locked
@@ -178,20 +178,20 @@ const AchievementModal: React.FC<AchievementModalProps> = ({
 
         <div>
           {filteredAchievements.map(achievement => (
-            <div 
-              key={achievement.achievementID} 
+            <div
+              key={achievement.achievementID}
               style={cardStyle(achievement.completed)}
             >
               {achievement.image_path && (
-                <img 
-                  src={`/static/${achievement.image_path}`} 
-                  alt={achievement.title} 
-                  style={{ 
-                    width: "50px", 
-                    height: "50px", 
+                <img
+                  src={`/static/${achievement.image_path}`}
+                  alt={achievement.title}
+                  style={{
+                    width: "50px",
+                    height: "50px",
                     marginRight: "15px",
                     opacity: achievement.completed ? 1 : 0.3
-                  }} 
+                  }}
                 />
               )}
               <div>

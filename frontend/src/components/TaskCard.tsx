@@ -31,7 +31,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
   setModalType,
   setIsModalOpen,
   fetchAll,
-  
+
 }) => {
   const [isChecked, setIsChecked] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -69,8 +69,8 @@ const TaskCard: React.FC<TaskCardProps> = ({
     setModalTypeLocked(true);
   };
 
-  const priorityColor = priority === 'high' ? 'bg-red-600' : 
-                        priority === 'medium' ? 'bg-orange-500' : 
+  const priorityColor = priority === 'high' ? 'bg-red-600' :
+                        priority === 'medium' ? 'bg-orange-500' :
                         'bg-green-500';
 
   return (
@@ -89,8 +89,8 @@ const TaskCard: React.FC<TaskCardProps> = ({
             ✏️
           </button>
           {dropdown && (description || otherTasks.length > 0) && (
-            <button 
-              onClick={() => setIsExpanded(!isExpanded)} 
+            <button
+              onClick={() => setIsExpanded(!isExpanded)}
               className="bg-gray-100 text-black p-1 rounded"
             >
               {isExpanded ? '🔼' : '🔽'}
@@ -106,10 +106,10 @@ const TaskCard: React.FC<TaskCardProps> = ({
       <p className="text-black">Duration: {duration} minutes</p>
 
       {/* Checkbox */}
-      <input 
-        type="checkbox" 
-        checked={isChecked} 
-        onChange={handleCheckboxChange} 
+      <input
+        type="checkbox"
+        checked={isChecked}
+        onChange={handleCheckboxChange}
         className="mr-2"
       />
       <label className="text-black"> Mark as Completed</label>

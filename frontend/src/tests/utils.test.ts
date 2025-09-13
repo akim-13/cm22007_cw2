@@ -16,7 +16,7 @@ describe('Date Formatting', () => {
   test('formats date correctly', () => {
     const testDate = new Date(2023, 0, 15, 14, 30); // Jan 15, 2023, 2:30 PM
     const formattedDate = formatDate(testDate);
-    
+
     // The exact format might vary by environment, so we'll check for key parts
     expect(formattedDate).toContain('01');  // Month
     expect(formattedDate).toContain('15');  // Day
@@ -28,7 +28,7 @@ describe('Date Formatting', () => {
   test('handles midnight correctly', () => {
     const testDate = new Date(2023, 0, 15, 0, 0); // Jan 15, 2023, 12:00 AM
     const formattedDate = formatDate(testDate);
-    
+
     expect(formattedDate).toContain('01');  // Month
     expect(formattedDate).toContain('15');  // Day
     expect(formattedDate).toContain('2023'); // Year
@@ -45,9 +45,9 @@ describe('Event Handling', () => {
       task: 'rgb(144,238,144)',
       standalone: 'rgb(255,99,132)'
     };
-    
+
     expect(eventColors.default).toBe('blue');
     expect(eventColors.task).toBe('rgb(144,238,144)');
     expect(eventColors.standalone).toBe('rgb(255,99,132)');
   });
-}); 
+});

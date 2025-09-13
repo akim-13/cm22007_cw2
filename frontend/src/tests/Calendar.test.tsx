@@ -39,4 +39,4 @@ describe('Calendar Component Tests', () => {
     expect(screen.getByTestId('calendar-mock')).toBeInTheDocument();
     expect(screen.getByText('Calendar Mock Component')).toBeInTheDocument();
   });
-}); 
+});

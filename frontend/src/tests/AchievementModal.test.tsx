@@ -10,10 +10,10 @@ const mockedAxios = axios as jest.Mocked<typeof axios>;
 
 describe('AchievementModal Component', () => {
   const mockOnClose = jest.fn();
-  
+
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     // Mock the window.matchMedia
     Object.defineProperty(window, 'matchMedia', {
       writable: true,
@@ -28,7 +28,7 @@ describe('AchievementModal Component', () => {
         dispatchEvent: jest.fn(),
       })),
     });
-    
+
     // Mock API responses
     mockedAxios.get.mockImplementation((url: string) => {
       if (url.includes('check_achievements')) {
@@ -73,20 +73,20 @@ describe('AchievementModal Component', () => {
 
   test('fetches and displays achievements when open', async () => {
     render(<AchievementModal isOpen={true} onClose={mockOnClose} />);
-    
+
     // Wait for loading to complete
     await waitFor(() => {
       expect(screen.queryByText('Loading achievements...')).not.toBeInTheDocument();
     });
-    
+
     // Check API calls
     expect(mockedAxios.get).toHaveBeenCalledWith('http://localhost:8000/check_achievements');
     expect(mockedAxios.get).toHaveBeenCalledWith('http://localhost:8000/get_user_points/joe');
-    
+
     // Check rendered content
     expect(screen.getByText('Achievements')).toBeInTheDocument();
     expect(screen.getByText('Your Points: 30')).toBeInTheDocument();
-    
+
     // Use more flexible text matching for achievements
     expect(screen.getByText((content) => content.includes('First Achievement'))).toBeInTheDocument();
     expect(screen.getByText((content) => content.includes('Second Achievement'))).toBeInTheDocument();
@@ -94,41 +94,41 @@ describe('AchievementModal Component', () => {
 
   test('filters achievements correctly', async () => {
     render(<AchievementModal isOpen={true} onClose={mockOnClose} />);
-    
+
     // Wait for loading to complete
     await waitFor(() => {
       expect(screen.queryByText('Loading achievements...')).not.toBeInTheDocument();
     });
-    
+
     // Check initial state (all achievements visible)
     expect(screen.getByText((content) => content.includes('First Achievement'))).toBeInTheDocument();
     expect(screen.getByText((content) => content.includes('Second Achievement'))).toBeInTheDocument();
-    
+
     // Click on "Completed" filter
     fireEvent.click(screen.getByText('Completed'));
-    
+
     // First achievement should be visible (30 points > 10 required)
     expect(screen.getByText((content) => content.includes('First Achievement'))).toBeInTheDocument();
-    
+
     // Click on "Locked" filter
     fireEvent.click(screen.getByText('Locked'));
-    
+
     // Second achievement should be visible (30 points < 50 required)
     expect(screen.getByText((content) => content.includes('Second Achievement'))).toBeInTheDocument();
   });
 
   test('closes modal when close button is clicked', async () => {
     render(<AchievementModal isOpen={true} onClose={mockOnClose} />);
-    
+
     // Wait for loading to complete
     await waitFor(() => {
       expect(screen.queryByText('Loading achievements...')).not.toBeInTheDocument();
     });
-    
+
     // Click the close button (✕)
     fireEvent.click(screen.getByText('✕'));
-    
+
     // Check if onClose was called
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });
-}); 
+});

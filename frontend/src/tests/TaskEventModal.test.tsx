@@ -55,7 +55,7 @@ describe("TaskEventModal", () => {
     setEvents: jest.fn(),
     isModalOpen: true,
     setIsModalOpen: jest.fn(),
-    newFCEvent: { 
+    newFCEvent: {
       current: {
         title: "",
         start: "",
@@ -136,18 +136,18 @@ describe("TaskEventModal", () => {
     mockedAxios.get.mockImplementation(mockedGet);
 
     render(<TaskEventModal {...defaultProps} modalType={false} />);
-    
+
     const titleInput = screen.getByTestId("title-input");
     const startInput = screen.getByTestId("start-date-input");
     const endInput = screen.getByTestId("end-date-input");
-    
+
     fireEvent.change(titleInput, { target: { value: "New Event", name: "title" } });
     fireEvent.change(startInput, { target: { value: "2024-03-20T10:00", name: "start" } });
     fireEvent.change(endInput, { target: { value: "2024-03-20T11:00", name: "end" } });
-    
+
     const form = screen.getByRole("form");
     await fireEvent.submit(form);
-    
+
     await waitFor(() => {
       expect(mockedPost).toHaveBeenCalledWith(
         "http://localhost:8000/add_standalone_event",

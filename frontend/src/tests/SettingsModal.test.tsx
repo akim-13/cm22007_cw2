@@ -18,7 +18,7 @@ global.fetch = jest.fn(() =>
 
 describe("SettingsModal", () => {
   const mockOnClose = jest.fn();
-  
+
   beforeEach(() => {
     localStorage.clear();
     jest.clearAllMocks();
@@ -66,11 +66,11 @@ describe("SettingsModal", () => {
   test("saves color settings when save button is clicked", async () => {
     const setItemSpy = jest.spyOn(Storage.prototype, 'setItem');
     render(<SettingsModal open={true} onClose={mockOnClose} />);
-    
+
     // Change colors
     const eventColorInput = screen.getByLabelText(/event colour/i);
     const taskColorInput = screen.getByLabelText(/task colour/i);
-    
+
     fireEvent.change(eventColorInput, { target: { value: '#ff0000' } });
     fireEvent.change(taskColorInput, { target: { value: '#00ff00' } });
 
@@ -90,7 +90,7 @@ describe("SettingsModal", () => {
     localStorage.setItem('taskColor', '#00ff00');
 
     render(<SettingsModal open={true} onClose={mockOnClose} />);
-    
+
     const eventColorInput = screen.getByLabelText(/event colour/i);
     const taskColorInput = screen.getByLabelText(/task colour/i);
 
