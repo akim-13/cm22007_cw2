@@ -1,11 +1,14 @@
 from datetime import datetime
+from typing import Any
+
+from database import models
 from fastapi import APIRouter, Depends, Form, HTTPException
+from services import task_scheduler
 from sqlalchemy.orm import Session
 
-from backend.services import tasks
-from database import models
-from services import task_scheduler
 from backend.database.deps import yield_db
+from backend.schemas.tasks import TaskUpdateForm
+from backend.services import tasks
 
 PRIORITY_LOW = 0
 PRIORITY_MID = 1
@@ -45,33 +48,30 @@ def create_task(
 
     response = task_scheduler.break_down_add_events("joe", new_task.taskID, db)
 
-    return response  
+    return response
 
 
 @router.put("/{taskID}")
 def update_task(
-    editID: int = Form(...),
-    title: str = Form(...),
-    description: str = Form(...),
-    duration: int = Form(...),
-    priority: int = Form(...),
-    deadline: datetime = Form(...),
+    form_data: TaskUpdateForm = Depends(TaskUpdateForm.as_form),
     db: Session = Depends(yield_db),
 ) -> dict:  # pragma: no cover
     """Update an existing task and reschedule its events."""
 
     response = tasks.edit_task(
-        editID,
+        form_data.editID,
         {
-            "title": title,
-            "description": description,
-            "duration": duration,
-            "priority": priority,
-            "deadline": deadline,
+            "title": form_data.title,
+            "description": form_data.description,
+            "duration": form_data.duration,
+            "priority": form_data.priority,
+            "deadline": form_data.deadline,
         },
         db,
     )
-    task_scheduler.break_down_add_events("joe", editID, db)
+
+    task_scheduler.break_down_add_events("joe", form_data.editID, db)
+
     return response
 
 
@@ -92,15 +92,13 @@ def complete_task(taskID: int, db: Session = Depends(yield_db)) -> dict:
 @router.put("/{taskID}/incomplete")
 def incomplete_task(taskID: int, db: Session = Depends(yield_db)) -> dict:
     """Mark a task as incomplete and update achievements."""
-    response = tasks.set_task_incomplete(taskID, db)
-    return response
+    return tasks.set_task_incomplete(taskID, db)
 
 
 @router.get("/user/{username}")
-def list_user_tasks(username: str, db: Session = Depends(yield_db)) -> list[dict]:
+def list_user_tasks(username: str, db: Session = Depends(yield_db)) -> dict[str, Any]:
     """Return all tasks for a user."""
-    response = tasks.get_user_tasks(username, db)
-    return response
+    return tasks.get_user_tasks(username, db)
 
 
 @router.get("/user/{username}/latest")

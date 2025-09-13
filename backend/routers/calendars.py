@@ -1,10 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-from sqlalchemy import func
-
 from database.models import Standalone_Event
-from backend.tools import calendar_to_events, external_cal_sync
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import func
+from sqlalchemy.orm import Session
+
 from backend.database.deps import yield_db
+from backend.tools import calendar_to_events, external_cal_sync
 
 router = APIRouter()
 
@@ -20,20 +20,18 @@ def add_calendar(data: dict, db: Session = Depends(yield_db)) -> dict[str, str]:
     db.query(Standalone_Event).filter(Standalone_Event.eventBy == url).delete()
     db.commit()
 
-    new_events = calendar_to_events.get_events_from_external_cal_link(url)
-    if "Valid link" in new_events:
-        new_events = new_events.get("Valid link")
+    new_events_dict = calendar_to_events.get_events_from_external_cal_link(url)
+    if "Valid link" in new_events_dict:
+        new_events = new_events_dict.get("Valid link")
 
         if new_events is None:
-            raise HTTPException(
-                status_code=400, detail="No events found at the provided URL."
-            )
+            raise HTTPException(status_code=400, detail="No events found at the provided URL.")
 
         for i in new_events:
             new_event = Standalone_Event(
+                standaloneEventName=i[0],
                 start=i[1],
                 end=i[2],
-                standaloneEventName=i[0],
                 standaloneEventDescription=i[3],
                 eventBy=i[4],
                 username="joe",  # placeholder
@@ -43,7 +41,7 @@ def add_calendar(data: dict, db: Session = Depends(yield_db)) -> dict[str, str]:
 
         return {"status": "complete"}
     else:
-        raise HTTPException(status_code=400, detail=new_events.get("Error"))
+        raise HTTPException(status_code=400, detail=new_events_dict.get("Error"))
 
 
 @router.get("/sync_all")

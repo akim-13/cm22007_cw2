@@ -1,5 +1,6 @@
 from database import SessionLocal
 
+
 def yield_db():
     db = SessionLocal()
     try:

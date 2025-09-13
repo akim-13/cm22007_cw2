@@ -1,8 +1,9 @@
-from database.models import User, Achievements
-from sqlalchemy.orm import Session
-from sqlalchemy.exc import IntegrityError
-from tools import convertToJson
 import hashlib
+
+from database.models import Achievements, User
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
+from tools import convertToJson
 
 
 def get_user_points(username: str, db: Session) -> dict:
@@ -26,9 +27,7 @@ def get_user_achievements(username: str, db: Session) -> dict:
 
     achievement_ids = user.achievements
     achievements = [
-        convertToJson(
-            db.query(Achievements).filter(Achievements.achievementID == ID).first()
-        )
+        convertToJson(db.query(Achievements).filter(Achievements.achievementID == ID).first())
         for ID in achievement_ids
     ]
 

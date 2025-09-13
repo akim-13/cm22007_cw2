@@ -1,18 +1,18 @@
 # TODO: See what's needed from here.
 #
 # Fix verbs and forms for mutating endpoints (examples):
-# 
+#
 # @app.post("/users")
 # def create_user(payload: CreateUser, db: Session = Depends(yield_db)):
 #     return user_service.create_user(payload.username, payload.password, db)
-# 
+#
 # @app.post("/tasks")
 # def add_task(form: AddTaskForm = Depends(), db: Session = Depends(yield_db)):
 #     new_task = models.Task(...); db.add(new_task); db.commit(); db.refresh(new_task)
 #     task_scheduler.break_down_add_events(form.username, new_task.taskID, db)
 #     return {"success": True, "taskID": new_task.taskID}
 
-# TODO: 
+# TODO:
 # - Return type annotations.
 # - Replace long func signatures with Pydantic models, e.g.:
 #   @router.put("/{taskID}")
@@ -39,26 +39,26 @@
 # - GH actions + pre-commit for code quality.
 
 
-import uvicorn
 from contextlib import asynccontextmanager
+
+import uvicorn
+from database import ORM_Base, SessionLocal, engine
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
-from database import SessionLocal, ORM_Base, engine
-from routers import users, achievements, tasks, events, calendars
+from routers import achievements, calendars, events, tasks, users
 from tools.startup import startup
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    ORM_Base.metadata.create_all(bind=engine)  
+    ORM_Base.metadata.create_all(bind=engine)
 
     with SessionLocal() as db:
         startup(db)
 
-    #↑ STARTUP CODE ↑
-    yield   # App runs.
-    #↓ SHUTDOWN CODE ↓
+    # ↑ STARTUP CODE ↑
+    yield  # App runs.
+    # ↓ SHUTDOWN CODE ↓
 
     print("Shutting down...")
 
@@ -71,7 +71,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_origins=["*"],
     allow_methods=["*"],  # Allow all HTTP methods (GET, POST, etc.)
-    allow_headers=["*"], 
+    allow_headers=["*"],
 )
 
 
@@ -85,5 +85,5 @@ def run_app():  # pragma: no cover
     return app
 
 
-if __name__ == "__main__": # pragma: no cover
+if __name__ == "__main__":  # pragma: no cover
     uvicorn.run("backend.main:run_app", host="127.0.0.1", port=8000, reload=True, factory=True)

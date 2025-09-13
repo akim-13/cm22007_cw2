@@ -1,10 +1,11 @@
 from typing import Any, Dict
 
-from database.models import Task, User
-from sqlalchemy.orm import Session
 from sqlalchemy import desc
+from sqlalchemy.orm import Session
+
+from backend.database.models import Task
 from backend.services import achievements
-from tools import convertToJson
+from backend.tools.jsonify import convertToJson
 
 
 def get_user_tasks(username: str, db: Session) -> Dict[str, Any]:
@@ -19,10 +20,7 @@ def get_latest_user_task(username: str, db: Session) -> Dict[str, Any]:
     """Return the most recent task for a user, or None if none exist."""
 
     latest_task = (
-        db.query(Task)
-        .filter(Task.username == username)
-        .order_by(desc(Task.taskID))
-        .first()
+        db.query(Task).filter(Task.username == username).order_by(desc(Task.taskID)).first()
     )
 
     return {"latest_task": convertToJson(latest_task)} if latest_task else {"latest_task": None}

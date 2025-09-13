@@ -5,7 +5,11 @@ from backend.tools import calendar_to_events
 
 
 def sync_db_with_external_cal(cal_link: str, db: Session) -> None:
-    """Replace all standalone events from a given calendar link with the latest events from that link."""
+    """
+    Replace all standalone events from a given calendar
+    link with the latest events from that link.
+    """
+
     db.query(Standalone_Event).filter(Standalone_Event.eventBy == cal_link).delete()
     db.commit()
 

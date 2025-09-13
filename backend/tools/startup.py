@@ -1,11 +1,15 @@
-from sqlalchemy.orm import Session
-from database.models import Achievements, Standalone_Event, User
 from config import default_achievements
-from backend.tools import external_cal_sync 
+from database.models import Achievements, Standalone_Event, User
+from sqlalchemy.orm import Session
+
+from backend.tools import external_cal_sync
 
 
 def startup(db: Session) -> None:
-    """Run initialisation steps for the application: sync calendars, init achievements, seed user."""
+    """
+    Run initialisation steps for the application:
+    sync calendars, init achievements, seed user.
+    """
     update_all_external_cals(db)
     initialise_achievements(db)
     seed_joe_user(db)
@@ -45,5 +49,13 @@ def seed_joe_user(db: Session) -> None:
     """Create a placeholder 'joe' user if it does not exist."""
     user = db.query(User).filter(User.username == "joe").first()
     if not user:
-        db.add(User(username="joe", hashedPassword="x", streakDays=0, currentPoints=0, stressLevel=0))
+        db.add(
+            User(
+                username="joe",
+                hashedPassword="x",
+                streakDays=0,
+                currentPoints=0,
+                stressLevel=0,
+            )
+        )
         db.commit()

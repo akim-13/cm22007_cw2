@@ -1,5 +1,6 @@
 from datetime import datetime
-from sqlalchemy import Boolean, Integer, String, DateTime, ForeignKey
+
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .dbsetup import ORM_Base
@@ -14,9 +15,7 @@ class User(ORM_Base):
     currentPoints: Mapped[int] = mapped_column(Integer, nullable=False)
     stressLevel: Mapped[int] = mapped_column(Integer, nullable=False)
 
-    tasks: Mapped[list["Task"]] = relationship(
-        "Task", back_populates="user", cascade="all, delete"
-    )
+    tasks: Mapped[list["Task"]] = relationship("Task", back_populates="user", cascade="all, delete")
     standalone_events: Mapped[list["Standalone_Event"]] = relationship(
         "Standalone_Event", back_populates="user", cascade="all, delete"
     )
@@ -82,7 +81,9 @@ class Standalone_Event(ORM_Base):
 class Achievements(ORM_Base):
     __tablename__ = "Achievements"
 
-    achievementID: Mapped[int] = mapped_column(Integer, primary_key=True, index=True, nullable=False)
+    achievementID: Mapped[int] = mapped_column(
+        Integer, primary_key=True, index=True, nullable=False
+    )
     requiredPoints: Mapped[int] = mapped_column(Integer, nullable=False)
     title: Mapped[str] = mapped_column(String, nullable=False)
     description: Mapped[str] = mapped_column(String, nullable=False)

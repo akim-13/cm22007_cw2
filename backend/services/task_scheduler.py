@@ -3,25 +3,25 @@
 # !!!
 
 import json
-
-from config import DATETIME_FORMAT, API_KEY
-from openai import OpenAI
 from datetime import datetime
-from database import Task, Event
-from sqlalchemy.orm import Session
-from tools import convertToJson
-from backend.services.events import get_standalone_events, get_events, delete_events_from_task
-from services.autofill import client
+from typing import Any
+
+from config import API_KEY, DATETIME_FORMAT
 from dotenv import load_dotenv
+from openai import OpenAI
+from sqlalchemy.orm import Session
+
+from backend.database.models import Event, Task
+from backend.services.events import delete_events_from_task, get_events, get_standalone_events
+from backend.tools.jsonify import convertToJson
+
 load_dotenv()
 print(f"API_KEY:{API_KEY}")
 
-
 client = OpenAI()
 
-system_prompt = \
-    """You are a calendar and task manager. Your job: break down tasks into events to be placed in a calendar. 
-The number of events is determined by the the complexity and length of the task. 
+system_prompt = """You are a calendar and task manager. Your job: break down tasks into events to be placed in a calendar.
+The number of events is determined by the the complexity and length of the task.
 Your response should be in JSON only, no markdown, explanation or any other text. store it like this: {"events": [list of events here]}
 
 An event has 3 keys: ['taskID', 'start', 'end']. Here are their descriptions:
@@ -46,14 +46,14 @@ only for sleep. IT IS STRICTLY FORBIDDEN TO SCHEDLUE ANYTHING BETWEEN THE TIMES
 """
 
 
-def get_user_prompt(task: Task, calendar: dict):
-    return \
-    f"""This is my task:
+def get_user_prompt(task: Task, calendar: list[dict[str, Any]]):
+    return f"""This is my task:
 {convertToJson(task)}
 A priority of 2 is most important.
 
 This is my calendar (events only have start and end times to save space):
 {calendar}"""
+
 
 def breakdown_task_LLM(user_prompt):
     try:
@@ -61,55 +61,64 @@ def breakdown_task_LLM(user_prompt):
             model="gpt-5-mini",
             messages=[
                 {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt}
+                {"role": "user", "content": user_prompt},
             ],
             response_format={"type": "json_object"},
         )
-        
+
         if (not completion) or (not completion.choices):
-                print("Error: API response is empty.")
-                return {}  
-        
+            print("Error: API response is empty.")
+            return {}
+
         print(completion)
         response = completion.choices[0].message.content
 
         if response is None:
-                print("Error: API response message content is None.")
-                return {}  
-            
+            print("Error: API response message content is None.")
+            return {}
+
         print(response)
         response = json.loads(response)
-        
+
         return response
 
     except Exception as e:
         print("API Error:", str(e))
-        return {}  
-    
+        return {}
+
 
 def break_down_add_events(username: str, taskID: int, db: Session) -> dict:
     task = db.query(Task).filter(Task.taskID == taskID).first()
     events = get_events(username, (datetime.now(), task.deadline), db)["events"]
-    
+
     if task.events != []:
         delete_events_from_task(taskID, db)  # Delete all the events that are prexisting
-        
+
     print("Doing some shit")
-    
-    standalone_events = get_standalone_events(username, (datetime.now(), task.deadline), db)["standalone_events"]
-    
+
+    standalone_events = get_standalone_events(username, (datetime.now(), task.deadline), db)[
+        "standalone_events"
+    ]
+
     calendar = [{"start": event["start"], "end": event["end"]} for event in events]
-    calendar.extend([{"start": s_event["start"], "end": s_event["end"]} for s_event in standalone_events])
+    calendar.extend(
+        [{"start": s_event["start"], "end": s_event["end"]} for s_event in standalone_events]
+    )
     out = breakdown_task_LLM(get_user_prompt(task, calendar))
-    new_events_json = out['events']
-    
+    new_events_json = out["events"]
+
     print("EVENTS: ", new_events_json, type(new_events_json))
-    
-    new_events = [Event(taskID=v["taskID"], 
-                        start=datetime.strptime(v["start"], DATETIME_FORMAT), 
-                        end=datetime.strptime(v["end"], DATETIME_FORMAT)) for v in new_events_json]
-    
-    db.bulk_save_objects(new_events)    
+
+    new_events = [
+        Event(
+            taskID=v["taskID"],
+            start=datetime.strptime(v["start"], DATETIME_FORMAT),
+            end=datetime.strptime(v["end"], DATETIME_FORMAT),
+        )
+        for v in new_events_json
+    ]
+
+    db.bulk_save_objects(new_events)
     db.commit()
-    
+
     return {"events_added": new_events_json}

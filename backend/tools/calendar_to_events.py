@@ -1,5 +1,6 @@
-from ics import Calendar
 import requests
+from ics import Calendar
+
 
 def get_events_from_external_cal_link(link: str) -> dict:
     """Fetch events from an external ICS calendar link and return them as lists of attributes."""
@@ -7,7 +8,7 @@ def get_events_from_external_cal_link(link: str) -> dict:
 
     try:
         file = requests.get(link)
-    except:
+    except Exception:
         return {"Error": "Invalid link"}
 
     if file.status_code != 200:
@@ -19,7 +20,7 @@ def get_events_from_external_cal_link(link: str) -> dict:
 
     try:
         calendar = Calendar(file.text)
-    except:
+    except Exception:
         return {"Error": "Invalid ics format"}
 
     for event in calendar.events:
