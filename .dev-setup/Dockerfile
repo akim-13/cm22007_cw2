@@ -11,4 +11,4 @@ RUN apt-get update \
 # Configure git to consider /app a safe directory (needed for CI).
 RUN git config --global --add safe.directory /app
 
-RUN pip install --no-cache-dir pre-commit black isort flake8 flake8-bugbear flake8-absolute-import mypy
+RUN pip install --no-cache-dir pre-commit
